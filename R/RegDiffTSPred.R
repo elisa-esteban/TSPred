@@ -1,30 +1,27 @@
-#' @title Method to predict according to the regular difference time series model
+#' @title Method to predict according to the regular difference time series
+#' model.
 #'
-#' @description This method implements the predicted value and their standard deviation
-#' according to the regular difference time series model
-#' \eqn{(1-B)y_{t}=a_{t}}{(1-B)y<sub>t</sub>=a<sub>t</sub>}
+#' @description This method implements the predicted value and their standard
+#' deviation according to the regular difference time series model
+#' \eqn{(1-B)y_{t}=a_{t}}{(1-B)y<sub>t</sub>=a<sub>t</sub>}.
 #'
-#' @param x object upon which the prediction will be made
-#'
-#' @param forward integer indicating the number of periods ahead when the
-#' prediction will be made; by default it is 2L
+#' @param x object upon which the prediction will be made.
 #'
 #' @param VarNames character vector with the variable names for which the
-#' prediction will be made; by default it is NULL
+#' prediction will be made; by default it is NULL.
 #'
-#' @param keyVar character vector with the variable names used as key variables
-#' in data.table operations; by default it is NULL
+#' @param forward integer indicating the number of periods ahead when the
+#' prediction will be made; by default it is 2L.
 #'
 #' @return It returns a list with components Pred and STD, containing the point
 #' prediction and the estimated standard deviations, respectively. Depending
 #' on the class of the input parameter x, it returns:
 #'
 #' \itemize{
-#'  \item For input class vector, it returns numeric vectors
-#'  \item For input class matrix, it returns matrices
-#'  \item For input class data.table, it returns data.tables
-#'  \item For input class StBusQ, it returns data.tables
-#'  \item For input class GenStBusQ, it returns data.tables
+#'  \item For input class vector, it returns numeric vectors.
+#'  \item For input class matrix, it returns matrices.
+#'  \item For input class data.table, it returns data.tables.
+#'  \item For input class StQ, it returns data.tables.
 #' }
 #'
 #' @examples
@@ -43,7 +40,7 @@
 #' RegDiffTSPred(Mat, forward = 1L)
 #'
 #' @export
-setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L){
+setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L, keyVar = NULL){
     standardGeneric("RegDiffTSPred")})
 
 #' @rdname RegDiffTSPred
@@ -117,56 +114,65 @@ setMethod(
 )
 #' @rdname RegDiffTSPred
 #'
-#' @import data.table
+#' @import StQList
 #'
 #' @export
 setMethod(
     f = "RegDiffTSPred",
-    signature = c("list"),
+    signature = c("StQList"),
     function(x, VarNames, forward = 2L){
 
-        ElemClass <- unique(unlist(lapply(x, function(DT){class(DT)[1]})))
-        if (length(ElemClass) != 1 | ElemClass != 'data.table') stop('[RegDiffTSPred list] x debe ser una lista de data.table.')
+        if (length(VarNames) == 0) stop('[RegDiffTSPred StQList] Debe especificar VarNames.')
 
-        if (missing(VarNames)) stop('[RegDiffTSPred list] Debe especificar VarNames.')
+        Data.list <- getData(x, VarNames)
 
-        keyVar <- setdiff(names(x[[length(x)]]), VarNames)
-        if (length(keyVar) == 0) stop('[RegDiffTSPred list] Debe especificar keyVar.')
+        keyVar <- vector('list', length(VarNames))
+        keyVar <- lapply(keyVar, function(x) {setdiff(names(Data.list[[length(Data.list)]]), c('IDDD', 'Value'))})
 
-        ValidUnits <- x[[length(x)]][, keyVar, with = F]
-        Data.list <- lapply(x, setkeyv, keyVar)
-        Data.list <- lapply(Data.list, function(x){x[ValidUnits, c(keyVar, VarNames), with = F]})
+        for (i in 1:length(keyVar)){
 
-        Data <- rbindlist(Data.list)
-        setkeyv(Data, keyVar)
+            key <- keyVar[[i]]
+            keyQual <- key
+            nQual <- length(key)
+            for (j in 1:nQual){
+                if (all(Data.list[[length(Data.list)]][IDDD == VarNames[i]][, key[j], with = F] == '')){
+                    keyQual <- setdiff(keyQual, key[j])
+                }
+            }
+            keyVar[[i]] <- keyQual
+        }
 
-        output.DT <- Data[, lapply(.SD, RegDiffTSPred, forward = forward), .SDcols = VarNames, by = keyVar]
+        ValidUnits <- Data.list[[length(Data.list)]][, unlist(keyVar), with = F]
+        setkeyv(ValidUnits, unlist(keyVar))
+        ValidUnits <- ValidUnits[!duplicated(ValidUnits)]
+        Data.list <- lapply(Data.list, function(Data){
 
-        output <- list(Pred = output.DT[seq(1, dim(output.DT)[[1]], by = 2)],
-                       STD = output.DT[seq(2, dim(output.DT)[[1]], by = 2)])
-        return(output)
-    }
-)
-#' @rdname RegDiffTSPred
-#'
-#' @import StBusQ
-#'
-#' @export
-setMethod(
-    f = "RegDiffTSPred",
-    signature = c("StBusQList"),
-    function(x, VarNames, forward = 2L){
+            Data <- Data[, c(unlist(keyVar), 'IDDD', 'Value'), with = F]
+            setkeyv(Data, unlist(keyVar))
+            out <- Data[ValidUnits]
+            setkeyv(out, 'IDDD')
+            out <- out[VarNames]
+            return(out)
 
-        if (missing(VarNames)) stop('[RegDiffTSPred list] Debe especificar VarNames.')
+        })
+        Data.list <- rbindlist(Data.list)
+        setkeyv(Data.list, c(unlist(keyVar), 'IDDD'))
+        Data.list[, Value := ifelse(Value == '', NA_real_, as.numeric(Value))]
 
-        Data.list <- StBusQ::dcast.StBusQ(x, VarNames)
-        Data.list <- lapply(Data.list, function(Per){
+        output.DT <- vector('list', length(VarNames))
+        output <- vector('list', length(VarNames))
+        for (i in 1:length(VarNames)){
 
-                            Reduce(function(x, y){merge(x, y, by = setdiff(names(x), VarNames))}, Per)
-            })
-        mc <- match.call()
-        mc[['x']] <- Data.list
-        output <- eval(mc)
+            output.DT[[i]] <- Data.list[, lapply(.SD, RegDiffTSPred, VarNames = VarNames[i], forward = forward),
+                                   .SDcols = 'Value', by = c(keyVar[[i]], 'IDDD')][IDDD == VarNames[i]]
+            output[[i]] <- list()
+            output[[i]][['Pred']] <- output.DT[[i]][seq(1, dim(output.DT[[i]])[[1]], by = 2), keyVar[[i]], with = F]
+            output[[i]][['STD']] <- output.DT[[i]][seq(2, dim(output.DT[[i]])[[1]], by = 2), keyVar[[i]], with = F]
+            output[[i]][['Pred']][, VarNames[i] := output.DT[[i]][seq(1, dim(output.DT[[i]])[[1]], by = 2), 'Value', with = F], with = F]
+            output[[i]][['STD']][, VarNames[i] := output.DT[[i]][seq(2, dim(output.DT[[i]])[[1]], by = 2), 'Value', with = F], with = F]
+        }
+        names(output) <- VarNames
+
         return(output)
 
    }
