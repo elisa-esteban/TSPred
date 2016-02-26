@@ -115,7 +115,7 @@ setMethod(
 )
 #' @rdname RegDiffTSPred
 #'
-#' @import StQList
+#' @import StQ
 #'
 #' @export
 setMethod(
