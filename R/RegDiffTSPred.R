@@ -20,8 +20,8 @@
 #' \itemize{
 #'  \item For input class vector, it returns numeric vectors.
 #'  \item For input class matrix, it returns matrices.
-#'  \item For input class data.table, it returns data.tables.
-#'  \item For input class StQ, it returns data.tables.
+#'  \item For input class StQList, it returns list whose components are
+#'   data.tables.
 #' }
 #'
 #' @examples
@@ -40,7 +40,7 @@
 #' RegDiffTSPred(Mat, forward = 1L)
 #'
 #' @export
-setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L, keyVar = NULL){
+setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L){
     standardGeneric("RegDiffTSPred")})
 
 #' @rdname RegDiffTSPred
@@ -102,7 +102,8 @@ setMethod(
 
         output <- apply(x, 1, RegDiffTSPred, forward = forward)
         output <- Reduce(rbind, output)
-        out <- list(Pred = Reduce(rbind, output[, 1]), STD = Reduce(rbind, output[, 2]))
+        out <- list(Pred = Reduce(rbind, output[, 1]),
+                    STD = Reduce(rbind, output[, 2]))
         out <- lapply(out, function(mat){
           dimnames(mat)[[1]] <- dimnames(x)[[1]]
           return(mat)
@@ -127,7 +128,8 @@ setMethod(
         Data.list <- getData(x, VarNames)
 
         keyVar <- vector('list', length(VarNames))
-        keyVar <- lapply(keyVar, function(x) {setdiff(names(Data.list[[length(Data.list)]]), c('IDDD', 'Value'))})
+        keyVar <- lapply(keyVar, function(x) {
+            setdiff(names(Data.list[[length(Data.list)]]), c('IDDD', 'Value'))})
 
         for (i in 1:length(keyVar)){
 
@@ -163,13 +165,20 @@ setMethod(
         output <- vector('list', length(VarNames))
         for (i in 1:length(VarNames)){
 
-            output.DT[[i]] <- Data.list[, lapply(.SD, RegDiffTSPred, VarNames = VarNames[i], forward = forward),
-                                   .SDcols = 'Value', by = c(keyVar[[i]], 'IDDD')][IDDD == VarNames[i]]
+            output.DT[[i]] <- Data.list[, lapply(.SD, RegDiffTSPred,
+                                                 VarNames = VarNames[i],
+                                                 forward = forward),
+                                   .SDcols = 'Value',
+                                   by = c(keyVar[[i]], 'IDDD')][IDDD == VarNames[i]]
             output[[i]] <- list()
-            output[[i]][['Pred']] <- output.DT[[i]][seq(1, dim(output.DT[[i]])[[1]], by = 2), keyVar[[i]], with = F]
-            output[[i]][['STD']] <- output.DT[[i]][seq(2, dim(output.DT[[i]])[[1]], by = 2), keyVar[[i]], with = F]
-            output[[i]][['Pred']][, VarNames[i] := output.DT[[i]][seq(1, dim(output.DT[[i]])[[1]], by = 2), 'Value', with = F], with = F]
-            output[[i]][['STD']][, VarNames[i] := output.DT[[i]][seq(2, dim(output.DT[[i]])[[1]], by = 2), 'Value', with = F], with = F]
+            output[[i]][['Pred']] <- output.DT[[i]][seq(1, dim(output.DT[[i]])[[1]], by = 2),
+                                                    keyVar[[i]], with = F]
+            output[[i]][['STD']] <- output.DT[[i]][seq(2, dim(output.DT[[i]])[[1]], by = 2),
+                                                   keyVar[[i]], with = F]
+            output[[i]][['Pred']][, VarNames[i] := output.DT[[i]][seq(1, dim(output.DT[[i]])[[1]], by = 2),
+                                                                  'Value', with = F], with = F]
+            output[[i]][['STD']][, VarNames[i] := output.DT[[i]][seq(2, dim(output.DT[[i]])[[1]], by = 2),
+                                                                 'Value', with = F], with = F]
         }
         names(output) <- VarNames
 
