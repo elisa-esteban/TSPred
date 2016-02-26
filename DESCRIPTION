@@ -8,10 +8,11 @@ Description: This package contains functions to make predictions of time
     generic
 Depends:
     R (>= 3.2.0)
-Imports: 
+Imports:
     methods,
     data.table (>= 1.9.0),
-    StBusQ (>= 0.2)
+    StQ (>= 0.2)
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 5.0.1
