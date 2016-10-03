@@ -126,7 +126,8 @@ setMethod(
         if (length(VarNames) == 0) stop('[RegDiffTSPred StQList] Debe especificar VarNames.')
 
         Data.list <- getData(x, VarNames)
-
+        Data.list <- lapply(Data.list, getData)
+        
         keyVar <- vector('list', length(VarNames))
         keyVar <- lapply(keyVar, function(x) {
             setdiff(names(Data.list[[length(Data.list)]]), c('IDDD', 'Value'))})
@@ -144,13 +145,14 @@ setMethod(
             keyVar[[i]] <- keyQual
         }
 
-        ValidUnits <- Data.list[[length(Data.list)]][, unlist(keyVar), with = F]
-        setkeyv(ValidUnits, unlist(keyVar))
+        keyVarTot <- unique(unlist(keyVar))
+        ValidUnits <- Data.list[[length(Data.list)]][, keyVarTot, with = F]
+        setkeyv(ValidUnits, keyVarTot)
         ValidUnits <- ValidUnits[!duplicated(ValidUnits)]
         Data.list <- lapply(Data.list, function(Data){
 
-            Data <- Data[, c(unlist(keyVar), 'IDDD', 'Value'), with = F]
-            setkeyv(Data, unlist(keyVar))
+            Data <- Data[, c(keyVarTot, 'IDDD', 'Value'), with = F]
+            setkeyv(Data, keyVarTot)
             out <- Data[ValidUnits]
             setkeyv(out, 'IDDD')
             out <- out[VarNames]
@@ -158,8 +160,8 @@ setMethod(
 
         })
         Data.list <- rbindlist(Data.list)
-        setkeyv(Data.list, c(unlist(keyVar), 'IDDD'))
-        Data.list[, Value := ifelse(Value == '', NA_real_, as.numeric(Value))]
+        setkeyv(Data.list, c(keyVarTot, 'IDDD'))
+        Data.list[, Value := ifelse(Value == '', NA_real_, Value)]
 
         output.DT <- vector('list', length(VarNames))
         output <- vector('list', length(VarNames))
