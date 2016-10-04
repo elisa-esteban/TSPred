@@ -134,11 +134,11 @@ setMethod(
   signature = c("StQList"),
   function(x,  StatDiff = 12L, forward, VarNames = NULL){
 
-      if (length(VarNames) == 0) stop('[StatDiffTSPred StQList] Debe especificar VarNames.')
+      if (length(VarNames) == 0) stop('[StatRegDiffTSPred StQList] Debe especificar VarNames.')
 
       Data.list <- getData(x, VarNames)
       Data.list <- lapply(Data.list, getData)
-      
+
       keyVar <- vector('list', length(VarNames))
       keyVar <- lapply(keyVar, function(x) {
           setdiff(names(Data.list[[length(Data.list)]]), c('IDDD', 'Value'))})

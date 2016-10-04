@@ -127,7 +127,7 @@ setMethod(
 
         Data.list <- getData(x, VarNames)
         Data.list <- lapply(Data.list, getData)
-        
+
         keyVar <- vector('list', length(VarNames))
         keyVar <- lapply(keyVar, function(x) {
             setdiff(names(Data.list[[length(Data.list)]]), c('IDDD', 'Value'))})
