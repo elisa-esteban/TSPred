@@ -53,7 +53,7 @@ setGeneric("StatRegDiffTSPred", function(x,  StatDiff = 12L, forward = 2L,
 setMethod(
   f = "StatRegDiffTSPred",
   signature = c("vector"),
-  function(x,  StatDiff = 12L, forward, VarNames = NULL){
+  function(x,  StatDiff = 12L, forward = 2L, VarNames = NULL){
 
     x <- as.numeric(x)
 
@@ -109,7 +109,7 @@ setMethod(
 setMethod(
   f = "StatRegDiffTSPred",
   signature = c("matrix"),
-  function(x,  StatDiff = 12L, forward, VarNames = NULL){
+  function(x,  StatDiff = 12L, forward = 2L, VarNames = NULL){
 
     output <- apply(x, 1, StatRegDiffTSPred, StatDiff = StatDiff,
                     forward = forward)
@@ -132,7 +132,7 @@ setMethod(
 setMethod(
   f = "StatRegDiffTSPred",
   signature = c("StQList"),
-  function(x,  StatDiff = 12L, forward, VarNames = NULL){
+  function(x,  StatDiff = 12L, forward = 2L, VarNames = NULL){
 
       if (length(VarNames) == 0) stop('[StatRegDiffTSPred StQList] Debe especificar VarNames.')
 
@@ -159,7 +159,7 @@ setMethod(
       keyVarTot <- unique(unlist(keyVar))
       ValidUnits <- Data.list[[length(Data.list)]][, keyVarTot, with = F]
       setkeyv(ValidUnits, keyVarTot)
-      ValidUnits <- ValidUnits[!duplicated(ValidUnits)]
+      ValidUnits <- ValidUnits[!duplicated(ValidUnits, by = key(ValidUnits))]
       Data.list <- lapply(Data.list, function(Data){
 
           Data <- Data[, c(unlist(keyVar), 'IDDD', 'Value'), with = F]
@@ -190,10 +190,8 @@ setMethod(
                                                   keyVar[[i]], with = F]
           output[[i]][['STD']] <- output.DT[[i]][seq(2, dim(output.DT[[i]])[[1]], by = 2),
                                                  keyVar[[i]], with = F]
-          output[[i]][['Pred']][, VarNames[i] := output.DT[[i]][seq(1, dim(output.DT[[i]])[[1]], by = 2),
-                                                                'Value', with = F], with = F]
-          output[[i]][['STD']][, VarNames[i] := output.DT[[i]][seq(2, dim(output.DT[[i]])[[1]], by = 2),
-                                                               'Value', with = F], with = F]
+          output[[i]][['Pred']][, (VarNames[i]) := output.DT[[i]][seq(1, dim(output.DT[[i]])[[1]], by = 2), 'Value', with = F]]
+          output[[i]][['STD']][, (VarNames[i]) := output.DT[[i]][seq(2, dim(output.DT[[i]])[[1]], by = 2), 'Value', with = F]]
       }
       names(output) <- VarNames
 
