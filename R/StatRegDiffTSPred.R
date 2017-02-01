@@ -42,6 +42,11 @@
 #' Mat <- rbind(Example1.TS, Example2.TS)
 #' StatRegDiffTSPred(Mat, forward = 1L)
 #'
+#' # With an object of class StQList
+#' data(DepuracionExample)
+#' VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
+#' StatRegDiffTSPred(DepuracionExample, VarNames = VarNames)
+#'
 #' @export
 setGeneric("StatRegDiffTSPred", function(x,  StatDiff = 12L, forward = 2L,
                                       VarNames = NULL){
@@ -126,7 +131,7 @@ setMethod(
 )
 #' @rdname StatRegDiffTSPred
 #'
-#' @import StQ
+#' @import data.table StQ
 #'
 #' @export
 setMethod(
@@ -136,25 +141,69 @@ setMethod(
 
       if (length(VarNames) == 0) stop('[StatRegDiffTSPred StQList] Debe especificar VarNames.')
 
+      QualsVal <- strsplit(VarNames, '_')
+      QualsVal <- lapply(QualsVal, function(Values){Values[2:length(Values)]})
+
+      VarNames <- ExtractNames(VarNames)
       Data.list <- getData(x, VarNames)
+      DD <- getDD(Data.list[[length(Data.list)]])
       Data.list <- lapply(Data.list, getData)
 
+      slotsNames <- names(getSlots('DD'))
+      slotsNames <- slotsNames[slotsNames != 'VarNameCorresp']
+      slotsDD <- lapply(slotsNames, function(x){slot(DD,x)})
+      DD <- Reduce('+', slotsDD)
+
       keyVar <- vector('list', length(VarNames))
-      keyVar <- lapply(keyVar, function(x) {
-          setdiff(names(Data.list[[length(Data.list)]]), c('IDDD', 'Value'))})
 
-      for (i in 1:length(keyVar)){
+      for (i in 1:length(VarNames)){
 
-          key <- keyVar[[i]]
-          keyQual <- key
-          nQual <- length(key)
-          for (j in 1:nQual){
-              if (all(Data.list[[length(Data.list)]][IDDD == VarNames[i]][, key[j], with = F] == '')){
-                  keyQual <- setdiff(keyQual, key[j])
-              }
-          }
-          keyVar[[i]] <- keyQual
+          key <- DD[Variable == VarNames[i]]
+          Quals <- setdiff(names(key), c('Variable', 'Sort', 'Class', 'Length', 'Qual1', 'ValueRegExp'))
+          key <- transpose(key[, Quals, with = FALSE])[['V1']]
+          keyVar[[i]] <- key[key != '']
+
       }
+
+      Data.list <- lapply(seq(along = Data.list), function(index){
+
+          Data <- DatadtToDT(Data.list[[index]])
+          Data_Var <- lapply(seq(along = VarNames), function(var){
+
+              Quals <- QualsVal[[var]]
+              keys <- keyVar[[var]]
+
+              if (length(Quals) == length(keys)){
+
+                  for (i in seq(along = keys)){
+
+                      col <- keys[i]
+                      Data <- Data[, aux := Data[[col]] == Quals[i]]
+                      Data <- Data[aux == TRUE]
+                      Data[, aux := NULL]
+                  }
+
+              } else {
+
+                  for (i in 1:(length(keys) - 1)){
+
+                      col <- keys[i]
+                      Data <- Data[, aux := Data[[col]] == Quals[i]]
+                      Data <- Data[aux == TRUE]
+                      Data[, aux := NULL]
+                  }
+
+                  Data <- Data[, aux := Data[[keys[length(keys)]]] == '']
+                  Data <- Data[aux == TRUE]
+                  Data[, aux := NULL]
+              }
+
+              return(Data)
+          })
+
+          out <- rbindlist(Data_Var, fill = TRUE)
+          return(out)
+      })
 
       keyVarTot <- unique(unlist(keyVar))
       ValidUnits <- Data.list[[length(Data.list)]][, keyVarTot, with = F]
