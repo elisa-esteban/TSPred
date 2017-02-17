@@ -43,9 +43,9 @@
 #' StatDiffTSPred(Mat, forward = 1L)
 #'
 #' # With an object of class StQList
-#' data(DepuracionExample)
+#' data(StQList_Example)
 #' VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
-#' StatDiffTSPred(DepuracionExample, VarNames = VarNames)
+#' StatDiffTSPred(StQList_Example, VarNames = VarNames)
 #'
 #' @export
 setGeneric("StatDiffTSPred", function(x,  StatDiff = 12L, forward = 2L,
@@ -136,6 +136,7 @@ setMethod(
 
       VarNames <- ExtractNames(VarNames)
       Data.list <- getData(x, VarNames)
+      IDQuals <- unlist(lapply(Data.list, getIDQual))
       DD <- getDD(Data.list[[length(Data.list)]])
       Data.list <- lapply(Data.list, getData)
 
@@ -149,9 +150,10 @@ setMethod(
       for (i in 1:length(VarNames)){
 
           key <- DD[Variable == VarNames[i]]
-          Quals <- setdiff(names(key), c('Variable', 'Sort', 'Class', 'Length', 'Qual1', 'ValueRegExp'))
+          Quals <- setdiff(names(key), c('Variable', 'Sort', 'Class', 'Length', 'ValueRegExp'))
           key <- transpose(key[, Quals, with = FALSE])[['V1']]
-          keyVar[[i]] <- key[key != '']
+          key <- key[key != '']
+          keyVar[[i]] <- setdiff(key, IDQuals)
 
       }
 
