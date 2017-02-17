@@ -65,9 +65,9 @@ Mat <- rbind(Example1.TS, Example2.TS)
 StatRegDiffTSPred(Mat, forward = 1L)
 
 # With an object of class StQList
-data(DepuracionExample)
+data(StQList_Example)
 VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
-StatRegDiffTSPred(DepuracionExample, VarNames = VarNames)
+StatRegDiffTSPred(StQList_Example, VarNames = VarNames)
 
 }
 
