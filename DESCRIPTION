@@ -1,6 +1,6 @@
 Package: TSPred
 Title: Point and std prediction of time series
-Version: 0.2.2
+Version: 0.2.4
 Author: David Salgado
 Maintainer: David Salgado <david.salgado.fernandez@ine.es>
 Description: This package contains functions to make predictions of time series. The functions are indeed different methods for their corresponding generic
@@ -8,8 +8,8 @@ Depends:
     R (>= 3.3.0)
 Imports:
     methods (>= 3.3.0),
-    data.table (>= 1.9.4),
-    StQ (>= 0.2.7)
+    data.table (>= 1.10.0),
+    StQ (>= 0.3.6)
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true

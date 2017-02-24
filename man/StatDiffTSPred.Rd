@@ -6,8 +6,7 @@
 \alias{StatDiffTSPred,StQList-method}
 \alias{StatDiffTSPred,matrix-method}
 \alias{StatDiffTSPred,vector-method}
-\title{Method to predict according to the stational difference time series
-model.}
+\title{Method to predict according to the stational difference time series model.}
 \usage{
 StatDiffTSPred(x, StatDiff = 12L, forward = 2L, VarNames = NULL)
 
@@ -23,19 +22,18 @@ StatDiffTSPred(x, StatDiff = 12L, forward = 2L, VarNames = NULL)
 \arguments{
 \item{x}{object upon which the prediction will be made.}
 
-\item{StatDiff}{stational differences of the time series; by default it is
-12L.}
+\item{StatDiff}{stational differences of the time series; by default it is 12L.}
 
-\item{forward}{integer indicating the number of periods ahead when the
-prediction will be made; by default it is 2L.}
+\item{forward}{integer indicating the number of periods ahead when the prediction will be made;
+by default it is 2L.}
 
-\item{VarNames}{character vector with the variable names for which the
-prediction will be made; by default it is NULL}
+\item{VarNames}{character vector with the variable names for which the prediction will be made;
+by default it is NULL}
 }
 \value{
-It returns a list with components Pred and STD, containing the point
-prediction and the estimated standard deviations, respectively. Depending
-on the class of the input parameter x, it returns:
+It returns a list with components Pred and STD, containing the point prediction and the
+estimated standard deviations, respectively. Depending on the class of the input parameter x, it
+returns:
 
 \itemize{
  \item For input class vector, it returns numeric vectors.
@@ -45,8 +43,8 @@ on the class of the input parameter x, it returns:
 }
 }
 \description{
-This method implements the predicted value and their standard
-deviation according to the stational difference time series model
+This method implements the predicted value and their standard deviation according to
+the stational difference time series model
 \eqn{(1-B)^s (1-B)y_{t}=a_{t}}{(1-B)^s (1-B)y<sub>t</sub>=a<sub>t</sub>}.
 }
 \examples{
@@ -63,6 +61,13 @@ StatDiffTSPred(Example2.TS, forward = 1L)
 # On a matrix
 Mat <- rbind(Example1.TS, Example2.TS)
 StatDiffTSPred(Mat, forward = 1L)
+
+\dontrun{
+# With an object of class StQList
+data(StQList_Example)
+VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
+StatDiffTSPred(StQList_Example, VarNames = VarNames)
+}
 
 }
 
