@@ -60,7 +60,7 @@ setMethod(
         # search for the first nonNA value
         index <- length(x)
         ahead <- 0
-        while (is.na(x[index])){
+        while (is.na(x[index])) {
             index <- index - 1L
             ahead <- ahead + 1L
         }
@@ -128,22 +128,44 @@ setMethod(
         Data.list <- getData(x, VarNames)
         Data.list <- lapply(Data.list, getData)
 
-        keyVar <- vector('list', length(VarNames))
-        keyVar <- lapply(keyVar, function(x) {
-            setdiff(names(Data.list[[length(Data.list)]]), c('IDDD', 'Value'))})
+        # keyVar <- vector('list', length(VarNames))
+        # keyVar <- lapply(keyVar, function(x) {
+        #     setdiff(names(Data.list[[length(Data.list)]]), c('IDDD', 'Value'))})
+        #
+        # for (i in 1:length(keyVar)){
+        #
+        #     key <- keyVar[[i]]
+        #     keyQual <- key
+        #     nQual <- length(key)
+        #     for (j in 1:nQual){
+        #         if (all(Data.list[[length(Data.list)]][IDDD == VarNames[i]][, key[j], with = F] == '')){
+        #             keyQual <- setdiff(keyQual, key[j])
+        #         }
+        #     }
+        #     keyVar[[i]] <- keyQual
+        # }
 
-        for (i in 1:length(keyVar)){
+        DD.list <- getDD(x)
 
-            key <- keyVar[[i]]
-            keyQual <- key
-            nQual <- length(key)
-            for (j in 1:nQual){
-                if (all(Data.list[[length(Data.list)]][IDDD == VarNames[i]][, key[j], with = F] == '')){
-                    keyQual <- setdiff(keyQual, key[j])
-                }
-            }
-            keyVar[[i]] <- keyQual
+        for (Name in names(Data.list)) {
+            keyVar <- lapply(VarNames, function(VarName){
+                         DDslot <- DDslotWith(DD.list[[Name]], VarName)
+                         key <- DDslot[Variable == VarName]
+                         var <- names(key)[grep('Qual', names(key))]
+                         var <- c('Variable', var)
+                         key <- key[, var, with = F]
+                    })
         }
+
+        keyVarTot <- lapply(names(Data.list), function(Name){
+            keyVar <- lapply(VarNames, function(VarName){
+                    DDslot <- DDslotWith(DD.list[[Name]], VarName)
+                    key <- DDslot[Variable == VarName]
+            })
+            keyVar <- rbindlist(keyVar)
+        })
+        names(keyVarTot) <- names(Data.list)
+
 
         keyVarTot <- unique(unlist(keyVar))
         ValidUnits <- Data.list[[length(Data.list)]][, keyVarTot, with = F]
