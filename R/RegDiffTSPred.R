@@ -1,4 +1,4 @@
-#' @title Method to predict according to the regular difference time series model.
+#' @title Method to predict according to the regular difference time series model
 #'
 #' @description This method implements the predicted value and their standard deviation according to
 #' the regular difference time series model \eqn{(1-B)y_{t}=a_{t}}{(1-B)y<sub>t</sub>=a<sub>t</sub>}.
@@ -105,16 +105,16 @@ setMethod(
     signature = c("matrix"),
     function(x, VarNames, forward = 2L){
 
-        output <- apply(x, 1, RegDiffTSPred, forward = forward)
-        output <- Reduce(rbind, output)
-        out <- list(Pred = Reduce(rbind, output[, 1]),
-                    STD = Reduce(rbind, output[, 2]))
-        out <- lapply(out, function(mat){
+        out <- apply(x, 1, RegDiffTSPred, forward = forward)
+        out <- Reduce(rbind, out)
+        output <- list(Pred = Reduce(rbind, out[, 1]),
+                    STD = Reduce(rbind, out[, 2]))
+        output <- lapply(output, function(mat){
           dimnames(mat)[[1]] <- dimnames(x)[[1]]
           return(mat)
         }
         )
-        return(out)
+        return(output)
 
     }
 )
@@ -144,7 +144,7 @@ setMethod(
         slotsNames <- names(getSlots('DD'))
         slotsNames <- slotsNames[slotsNames != 'VarNameCorresp']
         slotsDD <- lapply(slotsNames, function(x){slot(DD,x)})
-        DD <- Reduce('+', slotsDD)
+        DD <- DatadtToDT(Reduce('+', slotsDD))
 
         keyVar <- vector('list', length(VarNames))
 

@@ -4,9 +4,15 @@
 \name{StatRegDiffTSPred}
 \alias{StatRegDiffTSPred}
 \alias{StatRegDiffTSPred,vector-method}
+<<<<<<< HEAD
 \alias{StatRegDiffTSPred,matrix-method}
 \alias{StatRegDiffTSPred,StQList-method}
 \title{Method to predict according to the stational difference time series model.}
+||||||| merged common ancestors
+\title{Method to predict according to the stational difference time series model.}
+=======
+\title{Method to predict according to the stational difference time series model}
+>>>>>>> 7f7f362ee324e3eb90fbdd7e7255db813864b96c
 \usage{
 StatRegDiffTSPred(x, StatDiff = 12L, forward = 2L, VarNames = NULL)
 
