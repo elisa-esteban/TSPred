@@ -1,7 +1,7 @@
-#' @title Method to predict according to the regular difference time series model
+#' @title Method to predict according to ARIMA model
 #'
 #' @description This method implements the predicted value and their standard deviation according to
-#' the regular difference time series model \eqn{(1-B)y_{t}=a_{t}}{(1-B)y<sub>t</sub>=a<sub>t</sub>}.
+#' ARIMA model.
 #'
 #' @param x object upon which the prediction will be made.
 #'
@@ -26,33 +26,35 @@
 #'
 #' # Predicting one and two months ahead in time
 #' data(Example1.TS)
-#' RegDiffTSPred(Example1.TS, forward = 1L)
-#' RegDiffTSPred(Example1.TS, forward = 2L)
+#' AutoArimaTSPred(Example1.TS, forward = 1L)
+#' AutoArimaTSPred(Example1.TS, forward = 2L)
 #'
 #' # Predicting upon a times series with many NA values
 #' data(Example2.TS)
-#' RegDiffTSPred(Example2.TS, forward = 1L)
+#' AutoArimaTSPred(Example2.TS, forward = 1L)
 #'
 #' # On a matrix
 #' Mat <- rbind(Example1.TS, Example2.TS)
-#' RegDiffTSPred(Mat, forward = 1L)
+#' AutoArimaTSPred(Mat, forward = 1L)
 #'
 #' \dontrun{
 #' # With an object of class StQList
 #' data(StQList_Example)
 #' VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
-#' RegDiffTSPred(StQList_Example, VarNames)
+#' AutoArimaTSPred(StQList_Example, VarNames)
 #' }
 #'
 #' @export
-setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L){
-    standardGeneric("RegDiffTSPred")})
+setGeneric("AutoArimaTSPred", function(x, VarNames, forward = 2L){
+    standardGeneric("AutoArimaTSPred")})
 
-#' @rdname RegDiffTSPred
+#' @rdname AutoArimaTSPred
+#'
+#' @import forecast
 #'
 #' @export
 setMethod(
-    f = "RegDiffTSPred",
+    f = "AutoArimaTSPred",
     signature = c("vector"),
     function(x, VarNames, forward = 2L){
 
@@ -62,73 +64,49 @@ setMethod(
         if (length(x) == 0 | all(is.na(x))) return(list(Pred = NA_real_,
                                                         STD = NA_real_))
 
-        # search for the first nonNA value
-        index <- length(x)
-        ahead <- 0
-        while (is.na(x[index])){
-            index <- index - 1L
-            ahead <- ahead + 1L
-        }
+        fit <- auto.arima(x)
+        out <- forecast(fit, h = forward)
 
-        aux <- x[index]
-        names(aux) <- NULL
-        output <- list(Pred = aux)
-
-        if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) {
-            for (i in seq(along = x)){
-
-              if (is.na(x[i])) next
-              if (x[i] == 0) {
-                x[i] <- NA
-              } else break
-            }
-        }
-
-        d.x <-diff(x, lag = 1L)
-        std <- sqrt(mean(d.x * d.x, na.rm = T))
-        output[['STD']] <- std
-
-        ahead <- ahead + forward
-        if (forward >= 2L){
-            output <- RegDiffTSPred(x, forward = forward - 1L)
-            output[['STD']] <- ahead * output[['STD']]
-        }
+        std <- sqrt(out$model$sigma2)
+        output <- list(Pred = out$mean[forward], STD = std)
 
         return(output)
     }
 )
-#' @rdname RegDiffTSPred
+#' @rdname AutoArimaTSPred
+#'
+#' @import forecast
 #'
 #' @export
 setMethod(
-    f = "RegDiffTSPred",
+    f = "AutoArimaTSPred",
     signature = c("matrix"),
     function(x, VarNames, forward = 2L){
 
-        out <- apply(x, 1, RegDiffTSPred, forward = forward)
+        out <- apply(x, 1, AutoArimaTSPred, forward = forward)
         out <- Reduce(rbind, out)
         output <- list(Pred = Reduce(rbind, out[, 1]),
-                    STD = Reduce(rbind, out[, 2]))
+                       STD = Reduce(rbind, out[, 2]))
         output <- lapply(output, function(mat){
-          dimnames(mat)[[1]] <- dimnames(x)[[1]]
-          return(mat)
+            dimnames(mat)[[1]] <- dimnames(x)[[1]]
+            return(mat)
         }
         )
         return(output)
 
     }
 )
-#' @rdname RegDiffTSPred
+#' @rdname AutoArimaTSPred
 #'
-#' @import data.table StQ
+#' @import data.table StQ forecast
 #'
 #' @export
 setMethod(
-    f = "RegDiffTSPred",
+    f = "AutoArimaTSPred",
     signature = c("StQList"),
     function(x, VarNames, forward = 2L){
 
-        if (length(VarNames) == 0) stop('[RegDiffTSPred StQList] Debe especificar VarNames.')
+        if (length(VarNames) == 0) stop('[AutoArimaTSPred StQList] Debe especificar VarNames.')
 
         QualsVal <- strsplit(VarNames, '_')
         QualsVal <- lapply(QualsVal, function(Values){Values[2:length(Values)]})
@@ -163,36 +141,36 @@ setMethod(
             Data <- DatadtToDT(Data.list[[index]])
             Data_Var <- lapply(seq(along = VarNames), function(var){
 
-                            Quals <- QualsVal[[var]]
-                            keys <- keyVar[[var]]
+                Quals <- QualsVal[[var]]
+                keys <- keyVar[[var]]
 
-                            if (length(Quals) == length(keys)){
+                if (length(Quals) == length(keys)){
 
-                                for (i in seq(along = keys)){
+                    for (i in seq(along = keys)){
 
-                                    col <- keys[i]
-                                    Data <- Data[, aux := Data[[col]] == Quals[i]]
-                                    Data <- Data[aux == TRUE]
-                                    Data[, aux := NULL]
-                                }
+                        col <- keys[i]
+                        Data <- Data[, aux := Data[[col]] == Quals[i]]
+                        Data <- Data[aux == TRUE]
+                        Data[, aux := NULL]
+                    }
 
-                            } else {
+                } else {
 
-                                for (i in 1:(length(keys) - 1)){
+                    for (i in 1:(length(keys) - 1)){
 
-                                    col <- keys[i]
-                                    Data <- Data[, aux := Data[[col]] == Quals[i]]
-                                    Data <- Data[aux == TRUE]
-                                    Data[, aux := NULL]
-                                }
+                        col <- keys[i]
+                        Data <- Data[, aux := Data[[col]] == Quals[i]]
+                        Data <- Data[aux == TRUE]
+                        Data[, aux := NULL]
+                    }
 
-                                Data <- Data[, aux := Data[[keys[length(keys)]]] == '']
-                                Data <- Data[aux == TRUE]
-                                Data[, aux := NULL]
-                            }
+                    Data <- Data[, aux := Data[[keys[length(keys)]]] == '']
+                    Data <- Data[aux == TRUE]
+                    Data[, aux := NULL]
+                }
 
-                            return(Data)
-                        })
+                return(Data)
+            })
 
             out <- rbindlist(Data_Var, fill = TRUE)
             return(out)
@@ -217,7 +195,7 @@ setMethod(
         setkeyv(Data.list, c(keyVarTot, 'IDDD'))
         Data.list[, Value := ifelse(Value == '', NA_real_, Value)]
 
-        output.DT <- Data.list[, lapply(.SD, RegDiffTSPred,
+        output.DT <- Data.list[, lapply(.SD, AutoArimaTSPred,
                                         forward = forward),
                                .SDcols = 'Value',
                                by = setdiff(names(Data.list), 'Value')]
@@ -236,5 +214,5 @@ setMethod(
 
         return(output)
 
-   }
+    }
 )
