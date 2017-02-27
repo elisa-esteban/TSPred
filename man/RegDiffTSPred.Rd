@@ -4,15 +4,9 @@
 \name{RegDiffTSPred}
 \alias{RegDiffTSPred}
 \alias{RegDiffTSPred,vector-method}
-<<<<<<< HEAD
 \alias{RegDiffTSPred,matrix-method}
 \alias{RegDiffTSPred,StQList-method}
-\title{Method to predict according to the regular difference time series model.}
-||||||| merged common ancestors
-\title{Method to predict according to the regular difference time series model.}
-=======
 \title{Method to predict according to the regular difference time series model}
->>>>>>> 7f7f362ee324e3eb90fbdd7e7255db813864b96c
 \usage{
 RegDiffTSPred(x, VarNames, forward = 2L)
 
