@@ -12,4 +12,3 @@ data(Example1.TS)
 A vector of turnover values for an arbitrary undisclosed unit of the survey 
 IASS
 }
-

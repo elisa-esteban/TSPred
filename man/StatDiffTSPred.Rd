@@ -3,9 +3,9 @@
 \docType{methods}
 \name{StatDiffTSPred}
 \alias{StatDiffTSPred}
-\alias{StatDiffTSPred,StQList-method}
-\alias{StatDiffTSPred,matrix-method}
 \alias{StatDiffTSPred,vector-method}
+\alias{StatDiffTSPred,matrix-method}
+\alias{StatDiffTSPred,StQList-method}
 \title{Method to predict according to the stational difference time series model.}
 \usage{
 StatDiffTSPred(x, StatDiff = 12L, forward = 2L, VarNames = NULL)
@@ -70,4 +70,3 @@ StatDiffTSPred(StQList_Example, VarNames = VarNames)
 }
 
 }
-
