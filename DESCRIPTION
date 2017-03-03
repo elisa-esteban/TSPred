@@ -17,6 +17,7 @@ Collate:
     'RegDiffTSPred.R'
     'StatDiffTSPred.R'
     'StatRegDiffTSPred.R'
+    'ArimaBaseTSPred.R'
     'Example1.TS.R'
     'Example2.TS.R'
 RoxygenNote: 5.0.1
