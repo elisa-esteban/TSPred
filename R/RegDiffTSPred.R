@@ -44,6 +44,8 @@
 #' RegDiffTSPred(StQList_Example, VarNames)
 #' }
 #'
+#' @import data.table StQ
+#'
 #' @export
 setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L){
     standardGeneric("RegDiffTSPred")})
@@ -59,8 +61,7 @@ setMethod(
         x <- as.numeric(x)
 
         # zero-length or NA vectors returns NA
-        if (length(x) == 0 | all(is.na(x))) return(list(Pred = NA_real_,
-                                                        STD = NA_real_))
+        if (length(x) == 0 | all(is.na(x))) return(list(Pred = NA_real_, STD = NA_real_))
 
         # search for the first nonNA value
         index <- length(x)
@@ -119,8 +120,6 @@ setMethod(
     }
 )
 #' @rdname RegDiffTSPred
-#'
-#' @import data.table StQ
 #'
 #' @export
 setMethod(

@@ -47,6 +47,8 @@
 #' StatRegDiffTSPred(StQList_Example, StatDiff = 9L, VarNames = VarNames)
 #' }
 #'
+#' @import data.table StQ
+#'
 #' @export
 setGeneric("StatRegDiffTSPred", function(x,  StatDiff = 12L, forward = 2L,
                                       VarNames = NULL){
@@ -130,8 +132,6 @@ setMethod(
   }
 )
 #' @rdname StatRegDiffTSPred
-#'
-#' @import data.table StQ
 #'
 #' @export
 setMethod(
