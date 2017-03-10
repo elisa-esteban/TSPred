@@ -40,14 +40,8 @@
 #' RegDiffTSPred(StQListExample, VarNames)
 #' }
 #'
-<<<<<<< HEAD
 #' @import data.table StQ RepoTime
 #'
-||||||| merged common ancestors
-=======
-#' @import data.table StQ
-#'
->>>>>>> dca5fe21834e7ebe8b5c67fd5aae84b0980a48d6
 #' @export
 setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L){
     standardGeneric("RegDiffTSPred")})
