@@ -1,6 +1,7 @@
 Package: TSPred
 Title: Point and std prediction of time series
 Version: 0.2.7
+
 Author: David Salgado
 Maintainer: David Salgado <david.salgado.fernandez@ine.es>
 Description: This package contains functions to make predictions of time series. The functions are indeed different methods for their corresponding generic
@@ -19,6 +20,7 @@ Collate:
     'RegDiffTSPred.R'
     'StatDiffTSPred.R'
     'StatRegDiffTSPred.R'
+    'ArimaBaseTsPred.R'
     'AutoArimaTSPred.R'
     'Example1.TS.R'
     'Example2.TS.R'
