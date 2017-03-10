@@ -82,13 +82,13 @@ setMethod(
     }
 
     output <- list(Pred = ifelse(!NA.flag,
-                                 x[index.1] + x[index.s] - x[index.s - 1L], NA))
+                                 x[index.1] + x[index.s] - x[index.s - 1L], NA_real_))
 
     if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) {
       for (i in seq(along = x)){
         if (is.na(x[i])) next
         if (x[i] == 0) {
-          x[i] <- NA
+          x[i] <- NA_real_
         } else break
       }
     }
@@ -96,10 +96,10 @@ setMethod(
     d.x <- diff(x, lag = 1L)
     dsd.x <- diff(d.x, lag = StatDiff)
     if (length(dsd.x) == 0) {
-      output[['STD']] <- NA
+      output[['STD']] <- NA_real_
     } else {
       std <- sqrt(sum(dsd.x * dsd.x, na.rm = T)/length(dsd.x[!is.na(dsd.x)]))
-      output[['STD']] <- ifelse(!NA.flag, std, NA)
+      output[['STD']] <- ifelse(!NA.flag, std, NA_real_)
     }
 
     ahead <- ahead + forward

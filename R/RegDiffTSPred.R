@@ -76,7 +76,7 @@ setMethod(
 
               if (is.na(x[i])) next
               if (x[i] == 0) {
-                x[i] <- NA
+                x[i] <- NA_real_
               } else break
             }
         }
