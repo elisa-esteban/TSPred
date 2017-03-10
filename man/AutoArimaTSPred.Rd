@@ -54,4 +54,3 @@ AutoArimaTSPred(StQListExample, VarNames)
 }
 
 }
-

@@ -107,6 +107,7 @@ setMethod(
       output <- StatRegDiffTSPred(x, StatDiff = StatDiff, forward = forward - 1L)
       output[['STD']] <- ahead * output[['STD']]
     }
+    output <- data.table(Pred = output$Pred, STD = output$STD)
     return(output)
   }
 )
