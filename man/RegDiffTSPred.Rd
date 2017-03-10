@@ -4,15 +4,12 @@
 \name{RegDiffTSPred}
 \alias{RegDiffTSPred}
 \alias{RegDiffTSPred,StQList-method}
-\alias{RegDiffTSPred,matrix-method}
 \alias{RegDiffTSPred,vector-method}
 \title{Method to predict according to the regular difference time series model}
 \usage{
 RegDiffTSPred(x, VarNames, forward = 2L)
 
 \S4method{RegDiffTSPred}{vector}(x, VarNames, forward = 2L)
-
-\S4method{RegDiffTSPred}{matrix}(x, VarNames, forward = 2L)
 
 \S4method{RegDiffTSPred}{StQList}(x, VarNames, forward = 2L)
 }
@@ -52,15 +49,11 @@ RegDiffTSPred(Example1.TS, forward = 2L)
 data(Example2.TS)
 RegDiffTSPred(Example2.TS, forward = 1L)
 
-# On a matrix
-Mat <- rbind(Example1.TS, Example2.TS)
-RegDiffTSPred(Mat, forward = 1L)
-
 \dontrun{
 # With an object of class StQList
-data(StQList_Example)
+data(StQListExample)
 VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
-RegDiffTSPred(StQList_Example, VarNames)
+RegDiffTSPred(StQListExample, VarNames)
 }
 
 }

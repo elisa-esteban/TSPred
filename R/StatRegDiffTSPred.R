@@ -42,9 +42,9 @@
 #'
 #' \dontrun{
 #' # With an object of class StQList
-#' data(StQList_Example)
+#' data(StQListExample)
 #' VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
-#' StatRegDiffTSPred(StQList_Example, StatDiff = 9L, VarNames = VarNames)
+#' StatRegDiffTSPred(StQListExample, StatDiff = 9L, VarNames = VarNames)
 #' }
 #'
 #' @export
@@ -108,27 +108,7 @@ setMethod(
     return(output)
   }
 )
-#' @rdname StatRegDiffTSPred
-#'
-#' @export
-setMethod(
-  f = "StatRegDiffTSPred",
-  signature = c("matrix"),
-  function(x,  StatDiff = 12L, forward = 2L, VarNames = NULL){
 
-    out <- apply(x, 1, StatRegDiffTSPred, StatDiff = StatDiff,
-                    forward = forward)
-    out <- Reduce(rbind, out)
-    output <- list(Pred = Reduce(rbind, out[, 1]),
-                STD = Reduce(rbind, out[, 2]))
-    output <- lapply(output, function(mat){
-      dimnames(mat)[[1]] <- dimnames(x)[[1]]
-      return(mat)
-    }
-    )
-    return(output)
-  }
-)
 #' @rdname StatRegDiffTSPred
 #'
 #' @import data.table StQ
@@ -140,6 +120,40 @@ setMethod(
   function(x,  StatDiff = 12L, forward = 2L, VarNames = NULL){
 
       if (length(VarNames) == 0) stop('[StatRegDiffTSPred StQList] Debe especificar VarNames.')
+
+      if (length(VarNames) == 1){
+
+          DT <- getValues(x, VarNames)
+          IDQuals <- setdiff(names(DT), c(VarNames, 'Period'))
+          DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
+          setkeyv(DT, c(IDQuals, 'orderPeriod'))
+          output <- DT[, StatRegDiffTSPred(get(VarNames), StatDiff = StatDiff, forward = forward), by = IDQuals]
+          setnames(output, c('Pred', 'STD'), paste0(c('Pred', 'STD'), VarNames))
+          return(output)
+
+      } else {
+
+          DT.list <- lapply(VarNames, function(Var){
+
+              LocalOutput <- getValues(x, Var)
+              setnames(LocalOutput, Var, 'Value')
+              LocalOutput[, Variable := Var]
+              return(LocalOutput)
+          })
+
+          DT <- rbindlist(DT.list)
+          IDQuals <- setdiff(names(DT), c('Variable', 'Period', 'Value'))
+          DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
+          setkeyv(DT, c(IDQuals, 'Variable', 'orderPeriod'))
+          output <- DT[, StatRegDiffTSPred(Value, StatDiff = StatDiff, forward = forward), by = c(IDQuals, 'Variable')]
+          Form <- paste0(IDQuals, ' ~ Variable')
+          output.Pred <- dcast(output, as.formula(Form), value.var = 'Pred')
+          setnames(output.Pred, VarNames, paste0('Pred', VarNames))
+          output.STD <- dcast(output, as.formula(Form), value.var = 'STD')
+          setnames(output.STD, VarNames, paste0('STD', VarNames))
+          output <- merge(output.Pred, output.STD, by = IDQuals, all = TRUE)
+          return(output)
+      }
 
       QualsVal <- strsplit(VarNames, '_')
       QualsVal <- lapply(QualsVal, function(Values){Values[2:length(Values)]})

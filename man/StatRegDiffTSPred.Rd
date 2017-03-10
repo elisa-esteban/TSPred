@@ -4,16 +4,12 @@
 \name{StatRegDiffTSPred}
 \alias{StatRegDiffTSPred}
 \alias{StatRegDiffTSPred,StQList-method}
-\alias{StatRegDiffTSPred,matrix-method}
 \alias{StatRegDiffTSPred,vector-method}
 \title{Method to predict according to the stational difference time series model}
 \usage{
 StatRegDiffTSPred(x, StatDiff = 12L, forward = 2L, VarNames = NULL)
 
 \S4method{StatRegDiffTSPred}{vector}(x, StatDiff = 12L, forward = 2L,
-  VarNames = NULL)
-
-\S4method{StatRegDiffTSPred}{matrix}(x, StatDiff = 12L, forward = 2L,
   VarNames = NULL)
 
 \S4method{StatRegDiffTSPred}{StQList}(x, StatDiff = 12L, forward = 2L,
@@ -64,9 +60,9 @@ StatRegDiffTSPred(Mat, forward = 1L)
 
 \dontrun{
 # With an object of class StQList
-data(StQList_Example)
+data(StQListExample)
 VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
-StatRegDiffTSPred(StQList_Example, StatDiff = 9L, VarNames = VarNames)
+StatRegDiffTSPred(StQListExample, StatDiff = 9L, VarNames = VarNames)
 }
 
 }

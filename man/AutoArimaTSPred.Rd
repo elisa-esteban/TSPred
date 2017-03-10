@@ -3,18 +3,12 @@
 \docType{methods}
 \name{AutoArimaTSPred}
 \alias{AutoArimaTSPred}
-\alias{AutoArimaTSPred,StQList-method}
-\alias{AutoArimaTSPred,matrix-method}
 \alias{AutoArimaTSPred,vector-method}
-\title{Method to predict according to ARIMA model}
+\title{Method to predict according to an ARIMA model}
 \usage{
-AutoArimaTSPred(x, VarNames, forward = 2L)
+AutoArimaTSPred(x, VarNames, forward = 2L, ...)
 
 \S4method{AutoArimaTSPred}{vector}(x, VarNames, forward = 2L)
-
-\S4method{AutoArimaTSPred}{matrix}(x, VarNames, forward = 2L)
-
-\S4method{AutoArimaTSPred}{StQList}(x, VarNames, forward = 2L)
 }
 \arguments{
 \item{x}{object upon which the prediction will be made.}
@@ -39,7 +33,7 @@ returns:
 }
 \description{
 This method implements the predicted value and their standard deviation according to
-ARIMA model.
+an ARIMA model.
 }
 \examples{
 
@@ -52,15 +46,11 @@ AutoArimaTSPred(Example1.TS, forward = 2L)
 data(Example2.TS)
 AutoArimaTSPred(Example2.TS, forward = 1L)
 
-# On a matrix
-Mat <- rbind(Example1.TS, Example2.TS)
-AutoArimaTSPred(Mat, forward = 1L)
-
 \dontrun{
 # With an object of class StQList
-data(StQList_Example)
+data(StQListExample)
 VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
-AutoArimaTSPred(StQList_Example, VarNames)
+AutoArimaTSPred(StQListExample, VarNames)
 }
 
 }
