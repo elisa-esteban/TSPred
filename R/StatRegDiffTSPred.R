@@ -110,7 +110,7 @@ setMethod(
     return(output)
   }
 )
-
+#'
 #' @rdname StatRegDiffTSPred
 #'
 #' @export

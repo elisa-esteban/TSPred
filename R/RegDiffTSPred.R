@@ -96,7 +96,7 @@ setMethod(
         return(output)
     }
 )
-
+#'
 #' @rdname RegDiffTSPred
 #'
 #' @export

@@ -69,7 +69,7 @@ setMethod(
         return(output)
     }
 )
-
+#'
 #' @rdname ArimaBaseTSPred
 #'
 #' @export
