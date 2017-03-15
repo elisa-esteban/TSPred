@@ -98,6 +98,7 @@ setMethod(
       output[['STD']] <- ahead * output[['STD']]
 
     }
+    output <- data.table(Pred = output$Pred, STD = output$STD)
     return(output)
   }
 )

@@ -66,6 +66,7 @@ setMethod(
 
         std <- sqrt(out$model$sigma2)
         output <- list(Pred = out$mean[forward], STD = std)
+        output <- data.table(Pred = output$Pred, STD = output$STD)
         return(output)
     }
 )
