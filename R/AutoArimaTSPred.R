@@ -71,7 +71,7 @@ setMethod(
     }
 )
 #'
-#' @rdname ArimaBaseTSPred
+#' @rdname AutoArimaTSPred
 #'
 #' @export
 setMethod(

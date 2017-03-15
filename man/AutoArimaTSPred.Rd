@@ -3,12 +3,15 @@
 \docType{methods}
 \name{AutoArimaTSPred}
 \alias{AutoArimaTSPred}
+\alias{AutoArimaTSPred,StQList-method}
 \alias{AutoArimaTSPred,vector-method}
 \title{Method to predict according to an ARIMA model}
 \usage{
 AutoArimaTSPred(x, VarNames, forward = 2L, ...)
 
 \S4method{AutoArimaTSPred}{vector}(x, VarNames, forward = 2L)
+
+\S4method{AutoArimaTSPred}{StQList}(x, VarNames, forward = 2L)
 }
 \arguments{
 \item{x}{object upon which the prediction will be made.}
@@ -54,3 +57,4 @@ AutoArimaTSPred(StQListExample, VarNames)
 }
 
 }
+
