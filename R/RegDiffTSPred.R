@@ -105,7 +105,7 @@ setMethod(
     signature = c("StQList"),
     function(x, VarNames, forward = 2L){
 
-        if (length(VarNames) == 0) stop('[RegDiffTSPred StQList] Debe especificar VarNames.')
+        if (length(VarNames) == 0) stop('[RegDiffTSPred StQList] The input parameter VarNames must be specified.\n')
 
         if (length(VarNames) == 1){
 
