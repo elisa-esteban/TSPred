@@ -3,8 +3,8 @@
 \docType{methods}
 \name{AutoArimaTSPred}
 \alias{AutoArimaTSPred}
-\alias{AutoArimaTSPred,StQList-method}
 \alias{AutoArimaTSPred,vector-method}
+\alias{AutoArimaTSPred,StQList-method}
 \title{Method to predict according to an ARIMA model}
 \usage{
 AutoArimaTSPred(x, VarNames, forward = 2L, ...)

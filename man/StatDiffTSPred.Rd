@@ -3,15 +3,7 @@
 \docType{methods}
 \name{StatDiffTSPred}
 \alias{StatDiffTSPred}
-<<<<<<< HEAD
-||||||| merged common ancestors
-\alias{StatDiffTSPred,StQList-method}
-\alias{StatDiffTSPred,matrix-method}
-=======
-\alias{StatDiffTSPred,StQList-method}
->>>>>>> 4f4b523d435b53cb5730f17dcd77a6f1c3676d49
 \alias{StatDiffTSPred,vector-method}
-\alias{StatDiffTSPred,matrix-method}
 \alias{StatDiffTSPred,StQList-method}
 \title{Method to predict according to the stational difference time series model}
 \usage{

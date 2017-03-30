@@ -45,7 +45,7 @@
 #' @export
 setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L){
     standardGeneric("RegDiffTSPred")})
-
+#'
 #' @rdname RegDiffTSPred
 #'
 #' @export

@@ -53,7 +53,7 @@
 setGeneric("StatRegDiffTSPred", function(x,  StatDiff = 12L, forward = 2L,
                                       VarNames = NULL){
   standardGeneric("StatRegDiffTSPred")})
-
+#'
 #' @rdname StatRegDiffTSPred
 #'
 #' @export

@@ -64,14 +64,14 @@ setMethod(
 
     x <- as.numeric(x)
 
-    if (length(x) <= (StatDiff - 1L) | all(is.na(x))){
+    if (length(x) <= (StatDiff - 1L) | all(is.na(x))) {
 
          return(list(Pred = as.numeric(NA), STD = as.numeric(NA)))
     }
 
     index <- length(x) + 1L - StatDiff
     ahead <- 0
-    while (is.na(x[index])){
+    while (is.na(x[index])) {
       index <- index - StatDiff
       ahead <- ahead + 1L
       if (index <= 0) return(list(Pred = as.numeric(NA), STD = as.numeric(NA)))
@@ -80,19 +80,19 @@ setMethod(
     output <- list(Pred = x[index])
 
     if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) {
-      for (i in seq(along = x)){
+      for (i in seq(along = x)) {
         if (is.na(x[i])) next
         if (x[i] == 0) {
           x[i] <- NA
         } else break
       }
     }
-    ds.x <-diff(x, lag = StatDiff)
+    ds.x <- diff(x, lag = StatDiff)
     std <- sqrt(mean(ds.x * ds.x, na.rm = T))
     output[['STD']] <- std
 
     ahead <- ahead + forward
-    if (forward >= 2L){
+    if (forward >= 2L) {
       output <- StatDiffTSPred(x, StatDiff = StatDiff, forward = forward - 1L)
       names(output[['Pred']]) <- NULL
       output[['STD']] <- ahead * output[['STD']]
@@ -102,7 +102,7 @@ setMethod(
     return(output)
   }
 )
-
+#'
 #' @rdname StatDiffTSPred
 #'
 #' @export
@@ -113,7 +113,7 @@ setMethod(
 
       if (length(VarNames) == 0) stop('[StatDiffTSPred StQList] The input parameter VarNames must be specified.\n')
 
-      if (length(VarNames) == 1){
+      if (length(VarNames) == 1) {
 
           DT <- getValues(x, VarNames)
           IDQuals <- setdiff(names(DT), c(VarNames, 'Period'))

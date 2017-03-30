@@ -45,7 +45,7 @@
 #' @export
 setGeneric("AutoArimaTSPred", function(x, VarNames, forward = 2L, ...){
     standardGeneric("AutoArimaTSPred")})
-
+#'
 #' @rdname AutoArimaTSPred
 #'
 #'
