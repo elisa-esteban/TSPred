@@ -1,7 +1,7 @@
-#' @title Method to predict according to ARIMA model
+#' @title Method to predict according to an ARIMA model
 #'
 #' @description This method implements the predicted value and their standard deviation according to
-#' ARIMA model.
+#' an ARIMA model.
 #'
 #' @param x object upon which the prediction will be made.
 #'
@@ -33,24 +33,21 @@
 #' data(Example2.TS)
 #' AutoArimaTSPred(Example2.TS, forward = 1L)
 #'
-#' # On a matrix
-#' Mat <- rbind(Example1.TS, Example2.TS)
-#' AutoArimaTSPred(Mat, forward = 1L)
-#'
 #' \dontrun{
 #' # With an object of class StQList
-#' data(StQList_Example)
+#' data(StQListExample)
 #' VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
-#' AutoArimaTSPred(StQList_Example, VarNames)
+#' AutoArimaTSPred(StQListExample, VarNames)
 #' }
 #'
+#' @import forecast data.table StQ RepoTime
+#'
 #' @export
-setGeneric("AutoArimaTSPred", function(x, VarNames, forward = 2L){
+setGeneric("AutoArimaTSPred", function(x, VarNames, forward = 2L, ...){
     standardGeneric("AutoArimaTSPred")})
 
 #' @rdname AutoArimaTSPred
 #'
-#' @import forecast
 #'
 #' @export
 setMethod(
@@ -69,36 +66,12 @@ setMethod(
 
         std <- sqrt(out$model$sigma2)
         output <- list(Pred = out$mean[forward], STD = std)
-
+        output <- data.table(Pred = output$Pred, STD = output$STD)
         return(output)
     }
 )
+#'
 #' @rdname AutoArimaTSPred
-#'
-#' @import forecast
-#'
-#' @export
-setMethod(
-    f = "AutoArimaTSPred",
-    signature = c("matrix"),
-    function(x, VarNames, forward = 2L){
-
-        out <- apply(x, 1, AutoArimaTSPred, forward = forward)
-        out <- Reduce(rbind, out)
-        output <- list(Pred = Reduce(rbind, out[, 1]),
-                       STD = Reduce(rbind, out[, 2]))
-        output <- lapply(output, function(mat){
-            dimnames(mat)[[1]] <- dimnames(x)[[1]]
-            return(mat)
-        }
-        )
-        return(output)
-
-    }
-)
-#' @rdname AutoArimaTSPred
-#'
-#' @import data.table StQ forecast
 #'
 #' @export
 setMethod(
@@ -106,114 +79,41 @@ setMethod(
     signature = c("StQList"),
     function(x, VarNames, forward = 2L){
 
-        if (length(VarNames) == 0) stop('[AutoArimaTSPred StQList] Debe especificar VarNames.')
+        if (length(VarNames) == 0) stop('[AutoArimaTSPred StQList] The input parameter VarNames must be specified.\n')
 
-        QualsVal <- strsplit(VarNames, '_')
-        QualsVal <- lapply(QualsVal, function(Values){Values[2:length(Values)]})
+        if (length(VarNames) == 1){
 
-        OrigVarNames <- VarNames
-        VarNames <- ExtractNames(VarNames)
-        Data.list <- getData(x, VarNames)
-        IDQuals <- unlist(lapply(Data.list, getIDQual))
+            DT <- getValues(x, VarNames)
+            IDQuals <- setdiff(names(DT), c(VarNames, 'Period'))
+            DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
+            setkeyv(DT, c(IDQuals, 'orderPeriod'))
+            output <- DT[, AutoArimaTSPred(get(VarNames), forward = forward), by = IDQuals]
+            setnames(output, c('Pred', 'STD'), paste0(c('Pred', 'STD'), VarNames))
+            return(output)
 
-        DD <- getDD(Data.list[[length(Data.list)]])
-        Data.list <- lapply(Data.list, getData)
+        } else {
 
-        slotsNames <- names(getSlots('DD'))
-        slotsNames <- slotsNames[slotsNames != 'VarNameCorresp']
-        slotsDD <- lapply(slotsNames, function(x){slot(DD,x)})
-        DD <- DatadtToDT(Reduce('+', slotsDD))
+            DT.list <- lapply(VarNames, function(Var){
 
-        keyVar <- vector('list', length(VarNames))
-
-        for (i in 1:length(VarNames)){
-
-            key <- DD[Variable == VarNames[i]]
-            Quals <- setdiff(names(key), c('Variable', 'Sort', 'Class', 'Length', 'ValueRegExp'))
-            key <- transpose(key[, Quals, with = FALSE])[['V1']]
-            key <- key[key != '']
-            keyVar[[i]] <- setdiff(key, IDQuals)
-
-        }
-
-        Data.list <- lapply(seq(along = Data.list), function(index){
-
-            Data <- DatadtToDT(Data.list[[index]])
-            Data_Var <- lapply(seq(along = VarNames), function(var){
-
-                Quals <- QualsVal[[var]]
-                keys <- keyVar[[var]]
-
-                if (length(Quals) == length(keys)){
-
-                    for (i in seq(along = keys)){
-
-                        col <- keys[i]
-                        Data <- Data[, aux := Data[[col]] == Quals[i]]
-                        Data <- Data[aux == TRUE]
-                        Data[, aux := NULL]
-                    }
-
-                } else {
-
-                    for (i in 1:(length(keys) - 1)){
-
-                        col <- keys[i]
-                        Data <- Data[, aux := Data[[col]] == Quals[i]]
-                        Data <- Data[aux == TRUE]
-                        Data[, aux := NULL]
-                    }
-
-                    Data <- Data[, aux := Data[[keys[length(keys)]]] == '']
-                    Data <- Data[aux == TRUE]
-                    Data[, aux := NULL]
-                }
-
-                return(Data)
+                LocalOutput <- getValues(x, Var)
+                setnames(LocalOutput, Var, 'Value')
+                LocalOutput[, Variable := Var]
+                return(LocalOutput)
             })
 
-            out <- rbindlist(Data_Var, fill = TRUE)
-            return(out)
-        })
-
-        UnitQuals <- names(getUnits(x[[length(x)]]))
-        keyVarTot <- unique(c(UnitQuals, unlist(keyVar)))
-        ValidUnits <- Data.list[[length(Data.list)]][, keyVarTot, with = F]
-        setkeyv(ValidUnits, keyVarTot)
-        ValidUnits <- ValidUnits[!duplicated(ValidUnits, by = key(ValidUnits))]
-        Data.list <- lapply(Data.list, function(Data){
-
-            Data <- Data[, c(keyVarTot, 'IDDD', 'Value'), with = F]
-            setkeyv(Data, keyVarTot)
-            out <- Data[ValidUnits]
-            setkeyv(out, 'IDDD')
-            out <- out[VarNames]
-            return(out)
-
-        })
-        Data.list <- rbindlist(Data.list)
-        setkeyv(Data.list, c(keyVarTot, 'IDDD'))
-        Data.list[, Value := ifelse(Value == '', NA_real_, Value)]
-
-        output.DT <- Data.list[, lapply(.SD, AutoArimaTSPred,
-                                        forward = forward),
-                               .SDcols = 'Value',
-                               by = setdiff(names(Data.list), 'Value')]
-
-        output.Pred <- output.DT[seq(1, dim(output.DT)[[1]], by = 2), c(UnitQuals, 'IDDD', 'Value'), with = F]
-        formulaPred <- as.formula(paste0(paste0(UnitQuals, collapse = ' + '), ' ~ IDDD'))
-        output.Pred <- dcast.data.table(output.Pred, formulaPred, value.var = 'Value')
-        setnames(output.Pred, VarNames, OrigVarNames)
-
-        output.STD <- output.DT[seq(2, dim(output.DT)[[1]], by = 2), c(UnitQuals, 'IDDD', 'Value'), with = F]
-        formulaSTD <- as.formula(paste0(paste0(UnitQuals, collapse = ' + '), ' ~ IDDD'))
-        output.STD <- dcast.data.table(output.STD, formulaSTD, value.var = 'Value')
-        setnames(output.STD, VarNames, OrigVarNames)
-
-        output <- list(Pred = output.Pred, STD = output.STD)
-
-        return(output)
-
+            DT <- rbindlist(DT.list)
+            IDQuals <- setdiff(names(DT), c('Variable', 'Period', 'Value'))
+            DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
+            setkeyv(DT, c(IDQuals, 'Variable', 'orderPeriod'))
+            output <- DT[, AutoArimaTSPred(Value, forward = forward), by = c(IDQuals, 'Variable')]
+            Form <- paste0(IDQuals, ' ~ Variable')
+            output.Pred <- dcast(output, as.formula(Form), value.var = 'Pred')
+            setnames(output.Pred, VarNames, paste0('Pred', VarNames))
+            output.STD <- dcast(output, as.formula(Form), value.var = 'STD')
+            setnames(output.STD, VarNames, paste0('STD', VarNames))
+            output <- merge(output.Pred, output.STD, by = IDQuals, all = TRUE)
+            return(output)
+        }
     }
 )
 
