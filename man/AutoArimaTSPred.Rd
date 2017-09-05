@@ -7,17 +7,22 @@
 \alias{AutoArimaTSPred,StQList-method}
 \title{Method to predict according to an ARIMA model}
 \usage{
-AutoArimaTSPred(x, VarNames, forward = 2L, ...)
+AutoArimaTSPred(x, VarNames, frequency = 12, forward = 2L, ...)
 
-\S4method{AutoArimaTSPred}{vector}(x, VarNames, forward = 2L)
+\S4method{AutoArimaTSPred}{vector}(x, VarNames, frequency = 12L,
+  forward = 2L)
 
-\S4method{AutoArimaTSPred}{StQList}(x, VarNames, forward = 2L)
+\S4method{AutoArimaTSPred}{StQList}(x, VarNames, frequency = 12L,
+  forward = 2L)
 }
 \arguments{
 \item{x}{object upon which the prediction will be made.}
 
 \item{VarNames}{character vector with the variable names for which the prediction will be made;
 by default it is NULL.}
+
+\item{frequency}{integer indicating the frequency of time series;
+by default it is 12L.}
 
 \item{forward}{integer indicating the number of periods ahead when the prediction will be made;
 by default it is 2L.}
@@ -29,7 +34,6 @@ returns:
 
 \itemize{
  \item For input class vector, it returns numeric vectors.
- \item For input class matrix, it returns matrices.
  \item For input class StQList, it returns list whose components are
   data.tables.
 }

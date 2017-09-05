@@ -7,6 +7,9 @@
 #'
 #' @param VarNames character vector with the variable names for which the prediction will be made;
 #' by default it is NULL.
+#' 
+#' @param frequency integer indicating the frequency of time series;
+#' by default it is 12L.
 #'
 #' @param forward integer indicating the number of periods ahead when the prediction will be made;
 #' by default it is 2L.
@@ -17,7 +20,6 @@
 #'
 #' \itemize{
 #'  \item For input class vector, it returns numeric vectors.
-#'  \item For input class matrix, it returns matrices.
 #'  \item For input class StQList, it returns list whose components are
 #'   data.tables.
 #' }
@@ -40,10 +42,10 @@
 #' AutoArimaTSPred(StQListExample, VarNames)
 #' }
 #'
-#' @import forecast data.table StQ RepoTime
+#' @import forecast imputeTS data.table StQ RepoTime
 #'
 #' @export
-setGeneric("AutoArimaTSPred", function(x, VarNames, forward = 2L, ...){
+setGeneric("AutoArimaTSPred", function(x, VarNames, frequency = 12, forward = 2L, ...){
     standardGeneric("AutoArimaTSPred")})
 #'
 #' @rdname AutoArimaTSPred
@@ -53,16 +55,42 @@ setGeneric("AutoArimaTSPred", function(x, VarNames, forward = 2L, ...){
 setMethod(
     f = "AutoArimaTSPred",
     signature = c("vector"),
-    function(x, VarNames, forward = 2L){
+    function(x, VarNames, frequency = 12L, forward = 2L){
 
         x <- as.numeric(x)
-
+      
+        
+        if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) {
+          for (i in seq(along = x)){
+            
+            if (is.na(x[i])) next
+            if (x[i] == 0) {
+              x[i] <- NA_real_
+            } else break
+          }
+        }
+        
+        
+        ini <- which.min(is.na(x))
+        last <- length(x)
+        x <- x[ini:last]
+        
+        
         # zero-length or NA vectors returns NA
-        if (length(x) == 0 | all(is.na(x))) return(list(Pred = NA_real_,
+        if (length(x) == 0 | length(x[!is.na(x)]) < 3) return(list(Pred = NA_real_,
                                                         STD = NA_real_))
+        
 
-        fit <- auto.arima(x)
-        out <- forecast(fit, h = forward)
+        if (length(rle(x[!is.na(x)])$values) == 1) {
+            x <- imputeTS::na.kalman(x, model = 'auto.arima')
+        }else {
+            x <- imputeTS::na.kalman(x)
+        }
+        
+        x <- ts(x, frequency = frequency)
+        
+        fit <- forecast::auto.arima(x)
+        out <- forecast::forecast(fit, h = forward)
 
         std <- sqrt(out$model$sigma2)
         output <- list(Pred = out$mean[forward], STD = std)
@@ -77,7 +105,7 @@ setMethod(
 setMethod(
     f = "AutoArimaTSPred",
     signature = c("StQList"),
-    function(x, VarNames, forward = 2L){
+    function(x, VarNames, frequency = 12L, forward = 2L){
 
         if (length(VarNames) == 0) stop('[AutoArimaTSPred StQList] The input parameter VarNames must be specified.\n')
 
@@ -87,7 +115,7 @@ setMethod(
             IDQuals <- setdiff(names(DT), c(VarNames, 'Period'))
             DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
             setkeyv(DT, c(IDQuals, 'orderPeriod'))
-            output <- DT[, AutoArimaTSPred(get(VarNames), forward = forward), by = IDQuals]
+            output <- DT[, AutoArimaTSPred(get(VarNames), frequency = frequency, forward = forward), by = IDQuals]
             setnames(output, c('Pred', 'STD'), paste0(c('Pred', 'STD'), VarNames))
             return(output)
 
@@ -105,7 +133,7 @@ setMethod(
             IDQuals <- setdiff(names(DT), c('Variable', 'Period', 'Value'))
             DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
             setkeyv(DT, c(IDQuals, 'Variable', 'orderPeriod'))
-            output <- DT[, AutoArimaTSPred(Value, forward = forward), by = c(IDQuals, 'Variable')]
+            output <- DT[, AutoArimaTSPred(Value, frequency = frequency, forward = forward), by = c(IDQuals, 'Variable')]
             Form <- paste0(IDQuals, ' ~ Variable')
             output.Pred <- dcast(output, as.formula(Form), value.var = 'Pred')
             setnames(output.Pred, VarNames, paste0('Pred', VarNames))
