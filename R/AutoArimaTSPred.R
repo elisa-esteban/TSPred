@@ -58,7 +58,7 @@ setMethod(
     function(x, VarNames, frequency = 12L, forward = 2L){
 
         x <- as.numeric(x)
-      
+        x[is.infinite(x)] <- NA_real_
         
         if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) {
           for (i in seq(along = x)){
@@ -88,7 +88,7 @@ setMethod(
         }
         
         x <- ts(x, frequency = frequency)
-        
+       
         fit <- forecast::auto.arima(x)
         out <- forecast::forecast(fit, h = forward)
 
