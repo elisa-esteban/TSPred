@@ -84,7 +84,7 @@ setMethod(
         if (length(rle(x[!is.na(x)])$values) == 1) {
             x <- imputeTS::na.kalman(x, model = 'auto.arima')
         }else {
-            x <- imputeTS::na.kalman(x)
+             x <- imputeTS::na.kalman(x)
         }
         
         x <- ts(x, frequency = frequency)
