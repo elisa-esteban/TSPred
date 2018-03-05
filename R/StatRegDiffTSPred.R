@@ -47,7 +47,7 @@
 #' StatRegDiffTSPred(StQListExample, StatDiff = 9L, VarNames = VarNames)
 #' }
 #'
-#' @import data.table StQ
+#' @import data.table StQ parallel
 #'
 #' @export
 setGeneric("StatRegDiffTSPred", function(x,  StatDiff = 12L, forward = 2L,
@@ -84,14 +84,7 @@ setMethod(
     output <- list(Pred = ifelse(!NA.flag,
                                  x[index.1] + x[index.s] - x[index.s - 1L], NA_real_))
 
-    if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) {
-      for (i in seq(along = x)){
-        if (is.na(x[i])) next
-        if (x[i] == 0) {
-          x[i] <- NA_real_
-        } else break
-      }
-    }
+    if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
 
     d.x <- diff(x, lag = 1L)
     dsd.x <- diff(d.x, lag = StatDiff)
@@ -122,38 +115,44 @@ setMethod(
 
       if (length(VarNames) == 0) stop('[StatRegDiffTSPred StQList] The input parameter VarNames must be specified.\n')
 
+      x_StQ <- StQListToStQ(x)
+      DT <- dcast_StQ(x_StQ, ExtractNames(VarNames))
+      IDQuals <- setdiff(names(DT), c(VarNames, 'Period'))
+      DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
+      setkeyv(DT, c(IDQuals, 'orderPeriod'))
+
       if (length(VarNames) == 1){
 
-          DT <- getValues(x, VarNames)
-          IDQuals <- setdiff(names(DT), c(VarNames, 'Period'))
-          DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
-          setkeyv(DT, c(IDQuals, 'orderPeriod'))
-          output <- DT[, StatRegDiffTSPred(get(VarNames), StatDiff = StatDiff, forward = forward), by = IDQuals]
+          output <- DT[ ,StatRegDiffTSPred(get(VarNames), StatDiff = StatDiff, forward = forward),
+                        by = IDQuals]
           setnames(output, c('Pred', 'STD'), paste0(c('Pred', 'STD'), VarNames))
-          return(output)
 
       } else {
 
-          DT.list <- lapply(VarNames, function(Var){
+        n_cores <- max(1, detectCores() - 1)
+        clust <- makeCluster(n_cores)
 
-              LocalOutput <- getValues(x, Var)
-              setnames(LocalOutput, Var, 'Value')
-              LocalOutput[, Variable := Var]
-              return(LocalOutput)
-          })
+        clusterExport(clust, c("VarNames", 'StatDiff', 'forward', 'DT', 'IDQuals'), envir = environment())
+        clusterEvalQ(clust, library(data.table))
+        clusterEvalQ(clust, library(TSPred))
 
-          DT <- rbindlist(DT.list)
-          IDQuals <- setdiff(names(DT), c('Variable', 'Period', 'Value'))
-          DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
-          setkeyv(DT, c(IDQuals, 'Variable', 'orderPeriod'))
-          output <- DT[, StatRegDiffTSPred(Value, StatDiff = StatDiff, forward = forward), by = c(IDQuals, 'Variable')]
-          Form <- paste0(IDQuals, ' ~ Variable')
-          output.Pred <- dcast(output, as.formula(Form), value.var = 'Pred')
-          setnames(output.Pred, VarNames, paste0('Pred', VarNames))
-          output.STD <- dcast(output, as.formula(Form), value.var = 'STD')
-          setnames(output.STD, VarNames, paste0('STD', VarNames))
-          output <- merge(output.Pred, output.STD, by = IDQuals, all = TRUE)
-          return(output)
+        output <- parLapply(clust, VarNames, function(var){
+
+          out <- DT[ ,StatRegDiffTSPred(get(var), StatDiff = StatDiff, forward = forward),
+                     by = IDQuals]
+          return(out)
+
+        })
+
+        stopCluster(clust)
+
+        names(output) <- VarNames
+        output <- lapply(seq_along(output), function(n){
+          setnames(output[[n]], c('Pred', 'STD'), paste0(c('Pred', 'STD'), names(output[n])))})
+        output <- Reduce(merge, output)
+
       }
+
+      return(output)
   }
 )

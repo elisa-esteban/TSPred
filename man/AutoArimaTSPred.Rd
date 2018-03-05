@@ -7,7 +7,7 @@
 \alias{AutoArimaTSPred,StQList-method}
 \title{Method to predict according to an ARIMA model}
 \usage{
-AutoArimaTSPred(x, VarNames, frequency = 12, forward = 2L, ...)
+AutoArimaTSPred(x, VarNames, frequency = 12L, forward = 2L, ...)
 
 \S4method{AutoArimaTSPred}{vector}(x, VarNames, frequency = 12L,
   forward = 2L)
