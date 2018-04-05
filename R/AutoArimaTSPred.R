@@ -69,13 +69,13 @@ setMethod(
 
         # zero-length or NA vectors returns NA
         if (length(x) == 0 | length(x[!is.na(x)]) < 3) return(list(Pred = NA_real_,
-                                                        STD = NA_real_))
+                                                                   STD = NA_real_))
 
 
         if (length(rle(x[!is.na(x)])$values) == 1) {
             x <- imputeTS::na.kalman(x, model = 'auto.arima')
         }else {
-             x <- imputeTS::na.kalman(x)
+            x <- imputeTS::na.kalman(x)
         }
 
         x <- ts(x, frequency = frequency)
@@ -109,7 +109,7 @@ setMethod(
         if (length(VarNames) == 1) {
 
             output <- DT[ ,AutoArimaTSPred(get(VarNames), frequency = frequency, forward = forward),
-                       by = IDQuals]
+                          by = IDQuals]
             setnames(output, c('Pred', 'STD'), paste0(c('Pred', 'STD'), VarNames))
 
         } else{
@@ -133,9 +133,9 @@ setMethod(
 
             names(output) <- VarNames
             output <- lapply(seq_along(output), function(n){
-              setnames(output[[n]], c('Pred', 'STD'), paste0(c('Pred', 'STD'), names(output[n])))})
+                setnames(output[[n]], c('Pred', 'STD'), paste0(c('Pred', 'STD'), names(output[n])))})
             output <- Reduce(merge, output)
-            
+
 
         }
 
@@ -143,8 +143,3 @@ setMethod(
 
     }
 )
-
-
-
-
-
