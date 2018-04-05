@@ -7,7 +7,7 @@
 #'
 #' @param VarNames character vector with the variable names for which the prediction will be made;
 #' by default it is NULL.
-#' 
+#'
 #' @param frequency integer indicating the frequency of time series;
 #' by default it is 12L.
 #'
@@ -42,7 +42,7 @@
 #' AutoArimaTSPred(StQListExample, VarNames)
 #' }
 #'
-#' @import forecast imputeTS data.table StQ RepoTime
+#' @import forecast imputeTS data.table StQ RepoTime parallel
 #'
 #' @export
 setGeneric("AutoArimaTSPred", function(x, VarNames, frequency = 12, forward = 2L, ...){
@@ -59,36 +59,27 @@ setMethod(
 
         x <- as.numeric(x)
         x[is.infinite(x)] <- NA_real_
-        
-        if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) {
-          for (i in seq(along = x)){
-            
-            if (is.na(x[i])) next
-            if (x[i] == 0) {
-              x[i] <- NA_real_
-            } else break
-          }
-        }
-        
-        
+
+        if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
+
         ini <- which.min(is.na(x))
         last <- length(x)
         x <- x[ini:last]
-        
-        
+
+
         # zero-length or NA vectors returns NA
         if (length(x) == 0 | length(x[!is.na(x)]) < 3) return(list(Pred = NA_real_,
                                                         STD = NA_real_))
-        
+
 
         if (length(rle(x[!is.na(x)])$values) == 1) {
             x <- imputeTS::na.kalman(x, model = 'auto.arima')
         }else {
              x <- imputeTS::na.kalman(x)
         }
-        
+
         x <- ts(x, frequency = frequency)
-       
+
         fit <- forecast::auto.arima(x)
         out <- forecast::forecast(fit, h = forward)
 
@@ -107,41 +98,53 @@ setMethod(
     signature = c("StQList"),
     function(x, VarNames, frequency = 12L, forward = 2L){
 
-        if (length(VarNames) == 0) stop('[AutoArimaTSPred StQList] The input parameter VarNames must be specified.\n')
+        if (length(VarNames) == 0) stop('[TSPred::AutoArimaTSPred] The input parameter VarNames must be specified.\n')
 
-        if (length(VarNames) == 1){
+        x_StQ <- StQListToStQ(x)
+        DT <- dcast_StQ(x_StQ, ExtractNames(VarNames))
+        IDQuals <- setdiff(names(DT), c(VarNames, 'Period'))
+        DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
+        setkeyv(DT, c(IDQuals, 'orderPeriod'))
 
-            DT <- getValues(x, VarNames)
-            IDQuals <- setdiff(names(DT), c(VarNames, 'Period'))
-            DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
-            setkeyv(DT, c(IDQuals, 'orderPeriod'))
-            output <- DT[, AutoArimaTSPred(get(VarNames), frequency = frequency, forward = forward), by = IDQuals]
+        if (length(VarNames) == 1) {
+
+            output <- DT[ ,AutoArimaTSPred(get(VarNames), frequency = frequency, forward = forward),
+                       by = IDQuals]
             setnames(output, c('Pred', 'STD'), paste0(c('Pred', 'STD'), VarNames))
-            return(output)
 
-        } else {
+        } else{
 
-            DT.list <- lapply(VarNames, function(Var){
+            n_cores <- max(1, detectCores() - 1)
+            clust <- makeCluster(n_cores)
 
-                LocalOutput <- getValues(x, Var)
-                setnames(LocalOutput, Var, 'Value')
-                LocalOutput[, Variable := Var]
-                return(LocalOutput)
+            clusterExport(clust, c("VarNames", 'frequency', 'forward', 'DT', 'IDQuals'), envir = environment())
+            clusterEvalQ(clust, library(data.table))
+            clusterEvalQ(clust, library(TSPred))
+
+            output <- parLapply(clust, VarNames, function(var){
+
+                out <- DT[ ,AutoArimaTSPred(get(var), frequency = frequency, forward = forward),
+                           by = IDQuals]
+                return(out)
+
             })
 
-            DT <- rbindlist(DT.list)
-            IDQuals <- setdiff(names(DT), c('Variable', 'Period', 'Value'))
-            DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
-            setkeyv(DT, c(IDQuals, 'Variable', 'orderPeriod'))
-            output <- DT[, AutoArimaTSPred(Value, frequency = frequency, forward = forward), by = c(IDQuals, 'Variable')]
-            Form <- paste0(IDQuals, ' ~ Variable')
-            output.Pred <- dcast(output, as.formula(Form), value.var = 'Pred')
-            setnames(output.Pred, VarNames, paste0('Pred', VarNames))
-            output.STD <- dcast(output, as.formula(Form), value.var = 'STD')
-            setnames(output.STD, VarNames, paste0('STD', VarNames))
-            output <- merge(output.Pred, output.STD, by = IDQuals, all = TRUE)
-            return(output)
+            stopCluster(clust)
+
+            names(output) <- VarNames
+            output <- lapply(seq_along(output), function(n){
+              setnames(output[[n]], c('Pred', 'STD'), paste0(c('Pred', 'STD'), names(output[n])))})
+            output <- Reduce(merge, output)
+            
+
         }
+
+        return(output)
+
     }
 )
+
+
+
+
 
