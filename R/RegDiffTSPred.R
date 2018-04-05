@@ -100,8 +100,10 @@ setMethod(
         if (length(VarNames) == 0) stop('[RegDiffTSPred StQList] The input parameter VarNames must be specified.\n')
 
         x_StQ <- StQListToStQ(x)
+        VNC <- getVNC(getDD(x_StQ))$MicroData
+        IDQuals <- unique(VNC[['IDQual']])
+        IDQuals <- IDQuals[IDQuals != '' & IDQuals != 'Period']
         DT <- dcast_StQ(x_StQ, ExtractNames(VarNames))
-        IDQuals <- setdiff(names(DT), c(VarNames, 'Period'))
         DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
         setkeyv(DT, c(IDQuals, 'orderPeriod'))
 
