@@ -45,7 +45,7 @@
 #' @import forecast imputeTS data.table StQ RepoTime parallel
 #'
 #' @export
-setGeneric("AutoArimaTSPred", function(x, VarNames, frequency = 12L, forward = 2L, ...){
+setGeneric("AutoArimaTSPred", function(x, VarNames, frequency = 12L, forward = 2L){
     standardGeneric("AutoArimaTSPred")})
 #'
 #' @rdname AutoArimaTSPred

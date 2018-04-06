@@ -1,4 +1,4 @@
-#' @title Method to predict according to the regular difference time series model
+#' @title Method to predict according to the regular difference time series model.
 #'
 #' @description This method implements the predicted value and their standard deviation according to
 #' the regular difference time series model \eqn{(1-B)y_{t}=a_{t}}{(1-B)y<sub>t</sub>=a<sub>t</sub>}.
