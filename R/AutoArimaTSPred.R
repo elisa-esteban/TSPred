@@ -60,7 +60,7 @@ setMethod(
         x <- as.numeric(x)
         x[is.infinite(x)] <- NA_real_
 
-        if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
+        # if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
 
         ini <- which.min(is.na(x))
         last <- length(x)

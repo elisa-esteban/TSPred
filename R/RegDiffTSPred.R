@@ -71,7 +71,7 @@ setMethod(
         names(aux) <- NULL
         output <- list(Pred = aux)
 
-        if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
+        # if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
 
         d.x <- diff(x, lag = 1L)
         std <- sqrt(mean(d.x * d.x, na.rm = T))
