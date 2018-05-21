@@ -79,7 +79,7 @@ setMethod(
 
         output <- list(Pred = x[index])
 
-        if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
+        # if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
 
         ds.x <- diff(x, lag = StatDiff)
         std <- sqrt(mean(ds.x * ds.x, na.rm = T))

@@ -84,7 +84,7 @@ setMethod(
         output <- list(Pred = ifelse(!NA.flag,
                                      x[index.1] + x[index.s] - x[index.s - 1L], NA_real_))
 
-        if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
+        # if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
 
         d.x <- diff(x, lag = 1L)
         dsd.x <- diff(d.x, lag = StatDiff)
