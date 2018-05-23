@@ -7,11 +7,12 @@
 \alias{RegDiffTSPred,StQList-method}
 \title{Method to predict according to the regular difference time series model}
 \usage{
-RegDiffTSPred(x, VarNames, forward = 2L)
+RegDiffTSPred(x, VarNames, frequency = 12L, forward = 2L)
 
-\S4method{RegDiffTSPred}{vector}(x, VarNames, forward = 2L)
+\S4method{RegDiffTSPred}{vector}(x, VarNames, frequency = 12L, forward = 2L)
 
-\S4method{RegDiffTSPred}{StQList}(x, VarNames, forward = 2L)
+\S4method{RegDiffTSPred}{StQList}(x, VarNames, frequency = 12L,
+  forward = 2L)
 }
 \arguments{
 \item{x}{object upon which the prediction will be made.}

@@ -60,15 +60,13 @@ setMethod(
         x <- as.numeric(x)
         x[is.infinite(x)] <- NA_real_
 
-        # if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
-
         ini <- which.min(is.na(x))
         last <- length(x)
         x <- x[ini:last]
 
 
-        # zero-length or NA vectors returns NA
-        if (length(x) == 0 | length(x[!is.na(x)]) < 3) return(list(Pred = NA_real_,
+        # vectors with not enough observations returns NA
+        if (length(x) == 0 | length(x[!is.na(x)]) <= 3) return(list(Pred = NA_real_,
                                                                    STD = NA_real_))
 
 
@@ -116,7 +114,7 @@ setMethod(
 
         } else{
 
-            n_cores <- max(1, detectCores() - 1)
+            n_cores <- floor(detectCores() / 2 - 1)
             clust <- makeCluster(n_cores)
 
             clusterExport(clust, c("VarNames", 'frequency', 'forward', 'DT', 'IDQuals'), envir = environment())
