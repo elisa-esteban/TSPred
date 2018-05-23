@@ -63,43 +63,31 @@ setMethod(
     function(x,  StatDiff = 12L, forward = 2L, VarNames = NULL){
 
         x <- as.numeric(x)
+        x[is.infinite(x)] <- NA_real_
 
-        if (length(x) == 0 | all(is.na(x))){
-            return(list(Pred = as.numeric(NA), STD = as.numeric(NA)))
+        ini <- which.min(is.na(x))
+        last <- length(x)
+        x <- x[ini:last]
+
+
+        # vectors with not enough observations returns NA
+        min <- (last + forward) - 2 * StatDiff
+        if (length(x) == 0 | min < ini) return(list(Pred = NA_real_, STD = NA_real_))
+
+
+        if (length(rle(x[!is.na(x)])$values) == 1) {
+            x <- imputeTS::na.kalman(x, model = 'auto.arima')
+        }else {
+            x <- imputeTS::na.kalman(x)
         }
 
-        index.1 <- length(x)
-        index.s <- length(x) + 1L - StatDiff
-        ahead <- 0
-        NA.flag <- F
-        if (index.s <= 1) NA.flag <- T
-        while ( NA.flag == F &&
-                (is.na(x[index.1]) | is.na(x[index.s]) | is.na(x[index.s - 1L])) ){
-            index.1 <- index.1 - 1L
-            index.s <- index.s - StatDiff
-            ahead <- ahead + 1L
-            if (index.s <= 1) NA.flag <- T
-        }
+        x <- ts(x, frequency = StatDiff)
 
-        output <- list(Pred = ifelse(!NA.flag,
-                                     x[index.1] + x[index.s] - x[index.s - 1L], NA_real_))
+        fit <- arima(x, order = c(0, 1, 0), seasonal = c(0, 1, 0))
+        out <- forecast::forecast(fit, h = forward)
 
-        # if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
-
-        d.x <- diff(x, lag = 1L)
-        dsd.x <- diff(d.x, lag = StatDiff)
-        if (length(dsd.x) == 0) {
-            output[['STD']] <- NA_real_
-        } else {
-            std <- sqrt(sum(dsd.x * dsd.x, na.rm = T)/length(dsd.x[!is.na(dsd.x)]))
-            output[['STD']] <- ifelse(!NA.flag, std, NA_real_)
-        }
-
-        ahead <- ahead + forward
-        if (forward >= 2L){
-            output <- StatRegDiffTSPred(x, StatDiff = StatDiff, forward = forward - 1L)
-            output[['STD']] <- ahead * output[['STD']]
-        }
+        std <- sqrt(out$model$sigma2)
+        output <- list(Pred = out$mean[forward], STD = std)
         output <- data.table(Pred = output$Pred, STD = output$STD)
         return(output)
     }
@@ -131,7 +119,7 @@ setMethod(
 
         } else {
 
-            n_cores <- max(1, detectCores() - 1)
+            n_cores <- floor(detectCores() / 2 - 1)
             clust <- makeCluster(n_cores)
 
             clusterExport(clust, c("VarNames", 'StatDiff', 'forward', 'DT', 'IDQuals'), envir = environment())

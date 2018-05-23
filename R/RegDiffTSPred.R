@@ -43,7 +43,7 @@
 #' @import data.table StQ RepoTime parallel
 #'
 #' @export
-setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L){
+setGeneric("RegDiffTSPred", function(x, VarNames, frequency = 12L, forward = 2L){
     standardGeneric("RegDiffTSPred")})
 #'
 #' @rdname RegDiffTSPred
@@ -52,40 +52,37 @@ setGeneric("RegDiffTSPred", function(x, VarNames, forward = 2L){
 setMethod(
     f = "RegDiffTSPred",
     signature = c("vector"),
-    function(x, VarNames, forward = 2L){
+    function(x, VarNames, frequency = 12L, forward = 2L){
 
         x <- as.numeric(x)
+        x[is.infinite(x)] <- NA_real_
 
-        # zero-length or NA vectors returns NA
-        if (length(x) == 0 | all(is.na(x))) return(list(Pred = NA_real_, STD = NA_real_))
+        ini <- which.min(is.na(x))
+        last <- length(x)
+        x <- x[ini:last]
 
-        # search for the first nonNA value
-        index <- length(x)
-        ahead <- 0
-        while (is.na(x[index])) {
-            index <- index - 1L
-            ahead <- ahead + 1L
+
+        # vectors with not enough observations returns NA
+        if (length(x) == 0 | length(x[!is.na(x)]) <= 3) return(list(Pred = NA_real_,
+                                                                   STD = NA_real_))
+
+
+        if (length(rle(x[!is.na(x)])$values) == 1) {
+            x <- imputeTS::na.kalman(x, model = 'auto.arima')
+        }else {
+            x <- imputeTS::na.kalman(x)
         }
 
-        aux <- x[index]
-        names(aux) <- NULL
-        output <- list(Pred = aux)
+        x <- ts(x, frequency = frequency)
 
-        # if (!all(is.na(x)) && !all(x[!is.na(x)] == 0)) x[x == 0] <- NA_real_
+        fit <- arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
+        out <- forecast::forecast(fit, h = forward)
 
-        d.x <- diff(x, lag = 1L)
-        std <- sqrt(mean(d.x * d.x, na.rm = T))
-        output[['STD']] <- std
-
-        ahead <- ahead + forward
-        if (forward >= 2L) {
-            output <- RegDiffTSPred(x, forward = forward - 1L)
-            output[['STD']] <- ahead * output[['STD']]
-        }
-
-        output <- data.table(Pred = output[['Pred']], STD = output[['STD']])
-
+        std <- sqrt(out$model$sigma2)
+        output <- list(Pred = out$mean[forward], STD = std)
+        output <- data.table(Pred = output$Pred, STD = output$STD)
         return(output)
+
     }
 )
 #'
@@ -95,7 +92,7 @@ setMethod(
 setMethod(
     f = "RegDiffTSPred",
     signature = c("StQList"),
-    function(x, VarNames, forward = 2L){
+    function(x, VarNames, frequency = 12L, forward = 2L){
 
         if (length(VarNames) == 0) stop('[RegDiffTSPred StQList] The input parameter VarNames must be specified.\n')
 
@@ -109,22 +106,22 @@ setMethod(
 
         if (length(VarNames) == 1) {
 
-            output <- DT[ ,RegDiffTSPred(get(VarNames), forward = forward),
+            output <- DT[ ,RegDiffTSPred(get(VarNames), frequency = frequency, forward = forward),
                           by = IDQuals]
             setnames(output, c('Pred', 'STD'), paste0(c('Pred', 'STD'), VarNames))
 
         } else {
 
-            n_cores <- max(1, detectCores() - 1)
+            n_cores <- floor(detectCores() / 2 - 1)
             clust <- makeCluster(n_cores)
 
-            clusterExport(clust, c("VarNames", 'forward', 'DT', 'IDQuals'), envir = environment())
+            clusterExport(clust, c("VarNames", 'frequency', 'forward', 'DT', 'IDQuals'), envir = environment())
             clusterEvalQ(clust, library(data.table))
             clusterEvalQ(clust, library(TSPred))
 
             output <- parLapply(clust, VarNames, function(var){
 
-                out <- DT[ ,RegDiffTSPred(get(var), forward = forward), by = IDQuals]
+                out <- DT[ ,RegDiffTSPred(get(var), frequency = frequency, forward = forward), by = IDQuals]
                 return(out)
 
             })
