@@ -47,7 +47,7 @@
 #' StatDiffTSPred(StQListExample, VarNames = VarNames)
 #' }
 #'
-#' @import data.table StQ parallel
+#' @import forecast imputeTS data.table StQ RepoTime parallel
 #'
 #' @export
 setGeneric("StatDiffTSPred", function(x, StatDiff = 12L, forward = 2L,
@@ -60,10 +60,18 @@ setGeneric("StatDiffTSPred", function(x, StatDiff = 12L, forward = 2L,
 setMethod(
     f = "StatDiffTSPred",
     signature = c("vector"),
-    function(x,  StatDiff = 12L, forward = 2L, VarNames = NULL){
+    function(x,  StatDiff = 12L, forward = 2L, VarNames = NULL) {
 
         x <- as.numeric(x)
         x[is.infinite(x)] <- NA_real_
+
+        if (all(is.na(x))) {
+
+          output <- data.table(Pred = NA_real_, STD = NA_real_)
+          return(output)
+
+        }
+
 
         ini <- which.min(is.na(x))
         last <- length(x)
@@ -72,24 +80,27 @@ setMethod(
 
         # vectors with not enough observations returns NA
         min <- (last + forward) - 2 * StatDiff
-        if (length(x) == 0 | min < ini) return(list(Pred = NA_real_, STD = NA_real_))
+        if (length(x) == 0 | min < ini) {
 
+          output <- data.table(Pred = NA_real_, STD = NA_real_)
+          return(output)
 
-        if (length(rle(x[!is.na(x)])$values) == 1) {
-            x <- imputeTS::na.kalman(x, model = 'auto.arima')
         }else {
+          if (length(rle(x[!is.na(x)])$values) == 1) {
+            x <- imputeTS::na.kalman(x, model = 'auto.arima')
+          }else {
             x <- imputeTS::na.kalman(x)
+          }
+          x <- ts(x, frequency = StatDiff)
+
+          fit <- arima(x, order = c(0, 0, 0), seasonal = c(0, 1, 0))
+          out <- forecast::forecast(fit, h = forward)
+
+          std <- sqrt(out$model$sigma2)
+          output <- list(Pred = out$mean[forward], STD = std)
+          output <- data.table(Pred = output$Pred, STD = output$STD)
+          return(output)
         }
-
-        x <- ts(x, frequency = StatDiff)
-
-        fit <- arima(x, order = c(0, 0, 0), seasonal = c(0, 1, 0))
-        out <- forecast::forecast(fit, h = forward)
-
-        std <- sqrt(out$model$sigma2)
-        output <- list(Pred = out$mean[forward], STD = std)
-        output <- data.table(Pred = output$Pred, STD = output$STD)
-        return(output)
     }
 )
 #'
@@ -129,10 +140,6 @@ setMethod(
             output <- parLapply(clust, VarNames, function(var){
 
                 out <- DT[ ,StatDiffTSPred(get(var), StatDiff = StatDiff, forward = forward), by = IDQuals]
-                # out <- DT[, YearStart := as.integer(substr(Period, 5, 8))[1], by = IDQuals]
-                # out <- out[, MonthStart := as.integer(substr(Period, 3, 4))[1], by = IDQuals]
-                # out <- out[ ,StatDiffTSPred(get(var), StatDiff = StatDiff, start = c(YearStart, MonthStart),
-                #             forward = forward), by = IDQuals]
                 return(out)
 
             })

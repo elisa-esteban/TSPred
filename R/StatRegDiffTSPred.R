@@ -47,7 +47,7 @@
 #' StatRegDiffTSPred(StQListExample, StatDiff = 9L, VarNames = VarNames)
 #' }
 #'
-#' @import data.table StQ parallel
+#' @import forecast imputeTS data.table StQ RepoTime parallel
 #'
 #' @export
 setGeneric("StatRegDiffTSPred", function(x,  StatDiff = 12L, forward = 2L,
@@ -64,6 +64,13 @@ setMethod(
 
         x <- as.numeric(x)
         x[is.infinite(x)] <- NA_real_
+
+        if (all(is.na(x))) {
+
+            output <- data.table(Pred = NA_real_, STD = NA_real_)
+            return(output)
+
+        }
 
         ini <- which.min(is.na(x))
         last <- length(x)

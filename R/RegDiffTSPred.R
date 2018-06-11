@@ -40,7 +40,7 @@
 #' RegDiffTSPred(StQListExample, VarNames)
 #' }
 #'
-#' @import data.table StQ RepoTime parallel
+#' @import forecast imputeTS data.table StQ RepoTime parallel
 #'
 #' @export
 setGeneric("RegDiffTSPred", function(x, VarNames, frequency = 12L, forward = 2L){
@@ -57,15 +57,25 @@ setMethod(
         x <- as.numeric(x)
         x[is.infinite(x)] <- NA_real_
 
+        if (all(is.na(x))) {
+
+            output <- data.table(Pred = NA_real_, STD = NA_real_)
+            return(output)
+
+        }
+
         ini <- which.min(is.na(x))
         last <- length(x)
         x <- x[ini:last]
 
 
         # vectors with not enough observations returns NA
-        if (length(x) == 0 | length(x[!is.na(x)]) <= 3) return(list(Pred = NA_real_,
-                                                                   STD = NA_real_))
+        if (length(x) == 0 | length(x[!is.na(x)]) <= 3) {
 
+            output <- data.table(Pred = NA_real_,STD = NA_real_)
+            return(output)
+
+        }
 
         if (length(rle(x[!is.na(x)])$values) == 1) {
             x <- imputeTS::na.kalman(x, model = 'auto.arima')
