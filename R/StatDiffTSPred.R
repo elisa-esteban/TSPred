@@ -79,7 +79,7 @@ setMethod(
 
 
         # vectors with not enough observations returns NA
-        min <- (last + forward) - 2 * StatDiff
+        min <- (last + forward) - 3 * StatDiff
         if (length(x) == 0 | min < ini) {
 
           output <- data.table(Pred = NA_real_, STD = NA_real_)
