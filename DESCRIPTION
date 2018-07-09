@@ -23,6 +23,7 @@ Collate:
     'StatDiffTSPred.R'
     'StatRegDiffTSPred.R'
     'AutoArimaTSPred.R'
+    'FixedTSPred.R'
     'Example1.TS.R'
     'Example2.TS.R'
 RoxygenNote: 6.0.1
