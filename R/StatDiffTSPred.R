@@ -93,7 +93,7 @@ setMethod(
           }
           x <- ts(x, frequency = StatDiff)
 
-          fit <- arima(x, order = c(0, 0, 0), seasonal = c(0, 1, 0))
+          fit <- Arima(x, order = c(0, 0, 0), seasonal = c(0, 1, 0))
           out <- forecast::forecast(fit, h = forward)
 
           std <- sqrt(out$model$sigma2)

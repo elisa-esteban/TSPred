@@ -79,15 +79,14 @@ setMethod(
 
         if (length(rle(x[!is.na(x)])$values) == 1) {
             x <- imputeTS::na.kalman(x, model = 'auto.arima')
-        }else {
+        } else {
             x <- imputeTS::na.kalman(x)
         }
 
         x <- ts(x, frequency = frequency)
 
-        fit <- arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
+        fit <- Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
         out <- forecast::forecast(fit, h = forward)
-
         std <- sqrt(out$model$sigma2)
         output <- list(Pred = out$mean[forward], STD = std)
         output <- data.table(Pred = output$Pred, STD = output$STD)
