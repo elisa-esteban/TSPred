@@ -1,6 +1,6 @@
 Package: TSPred
 Title: Point and std prediction of time series
-Version: 0.3.6
+Version: 0.3.7
 Author: David Salgado
 Maintainer: David Salgado <david.salgado.fernandez@ine.es>
 Description: This package contains functions to make 
