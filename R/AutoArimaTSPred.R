@@ -89,7 +89,7 @@ setMethod(
 
         fit <- forecast::auto.arima(x)
         out <- forecast::forecast(fit, h = forward, level = 0.95)
-        std <- (out$upper[forward] - out$lower[forward]) / 2 * 1.96
+        std <- (out$upper[forward] - out$lower[forward]) / (2 * 1.96)
         output <- list(Pred = out$mean[forward], STD = std)
         output <- data.table(Pred = output$Pred, STD = output$STD)
         return(output)
