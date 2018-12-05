@@ -84,25 +84,27 @@ setMethod(
 
           output <- data.table(Pred = NA_real_, STD = NA_real_)
           return(output)
-        } 
-        
-        
+        }
+
+
         if (length(rle(x[!is.na(x)])$values) == 1) {
-          
+
           x <- imputeTS::na.kalman(x, model = 'auto.arima')
         } else {
-          
+
           x <- imputeTS::na.kalman(x)
         }
-        x <- ts(x, frequency = StatDiff)
 
-        fit <- Arima(x, order = c(0, 0, 0), seasonal = c(0, 1, 0))
-        out <- forecast::forecast(fit, h = forward, level = 0.95)
-        std <- (out$upper[forward] - out$lower[forward]) / 2 * 1.96
-        output <- list(Pred = out$mean[forward], STD = std)
-        output <- data.table(Pred = output$Pred, STD = output$STD)
-        return(output)
-        
+
+       x <- ts(x, frequency = StatDiff)
+
+       fit <- Arima(x, order = c(0, 0, 0), seasonal = c(0, 1, 0))
+       out <- forecast::forecast(fit, h = forward, level = 0.95)
+       std <- (out$upper[forward] - out$lower[forward]) / (2 * 1.96)
+       output <- list(Pred = out$mean[forward], STD = std)
+       output <- data.table(Pred = output$Pred, STD = output$STD)
+       return(output)
+
     }
 )
 #'
