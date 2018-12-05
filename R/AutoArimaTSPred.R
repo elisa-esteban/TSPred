@@ -76,18 +76,27 @@ setMethod(
         if (length(x) == 0 | length(x[!is.na(x)]) <= 3) {
             output <- data.table(Pred = NA_real_, STD = NA_real_)
             return(output)
-            }
+        }
 
 
         if (length(rle(x[!is.na(x)])$values) == 1) {
+          
             x <- imputeTS::na.kalman(x, model = 'auto.arima')
-        }else {
+        } else {
+          
             x <- imputeTS::na.kalman(x)
         }
 
         x <- ts(x, frequency = frequency)
 
-        fit <- forecast::auto.arima(x)
+        if (length(x) < 12) {
+          
+          fit <- Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
+        } else {
+          
+          fit <- forecast::auto.arima(x)
+        }
+
         out <- forecast::forecast(fit, h = forward, level = 0.95)
         std <- (out$upper[forward] - out$lower[forward]) / 2 * 1.96
         output <- list(Pred = out$mean[forward], STD = std)

@@ -79,12 +79,18 @@ setMethod(
 
         # vectors with not enough observations returns NA
         min <- (last + forward) - 3 * StatDiff
-        if (length(x) == 0 | min < ini) return(list(Pred = NA_real_, STD = NA_real_))
+        if (length(x) == 0 | min < ini) {
+          
+          output <- data.table(Pred = NA_real_, STD = NA_real_)
+          return(output)
+        }
 
 
         if (length(rle(x[!is.na(x)])$values) == 1) {
+          
             x <- imputeTS::na.kalman(x, model = 'auto.arima')
         } else {
+          
             x <- imputeTS::na.kalman(x)
         }
 
