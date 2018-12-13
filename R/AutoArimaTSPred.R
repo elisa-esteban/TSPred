@@ -73,27 +73,25 @@ setMethod(
 
 
         # vectors with not enough observations returns NA
-        if (length(x) == 0 | length(x[!is.na(x)]) <= 3) {
-            output <- data.table(Pred = NA_real_, STD = NA_real_)
-            return(output)
-        }
+        x.aux <- x[!is.na(x)]
+        if (length(x) == 0 | length(x.aux) < 3) return(data.table(Pred = NA_real_, STD = NA_real_))
 
 
-        if (length(rle(x[!is.na(x)])$values) == 1) {
-          
+        if (length(rle(x.aux)$values) == 1) {
+
             x <- imputeTS::na.kalman(x, model = 'auto.arima')
         } else {
-          
+
             x <- imputeTS::na.kalman(x)
         }
 
         x <- ts(x, frequency = frequency)
 
         if (length(x) < 12) {
-          
+
           fit <- Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
         } else {
-          
+
           fit <- forecast::auto.arima(x)
         }
 
