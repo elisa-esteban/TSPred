@@ -71,9 +71,9 @@ setMethod(
 
         # vectors with not enough observations returns NA
         x.aux <- x[!is.na(x)]
-        if (length(x) == 0 | length(x.aux) < 3) return(data.table(Pred = NA_real_, STD = NA_real_))
+        if (length(x) == 0 | length(x.aux) == 1) return(data.table(Pred = NA_real_, STD = NA_real_))
 
-        if (length(x.aux) == 3) return(data.table(Pred = x.aux[length(x.aux)], STD = sd(x.aux)))
+        if (length(x.aux) <= 3) return(data.table(Pred = x.aux[length(x.aux)], STD = sd(x.aux)))
 
 
         if (length(rle(x.aux)$values) == 1) {
