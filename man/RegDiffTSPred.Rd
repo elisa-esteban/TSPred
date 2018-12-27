@@ -9,7 +9,8 @@
 \usage{
 RegDiffTSPred(x, VarNames, frequency = 12L, forward = 2L)
 
-\S4method{RegDiffTSPred}{vector}(x, VarNames, frequency = 12L, forward = 2L)
+\S4method{RegDiffTSPred}{vector}(x, VarNames, frequency = 12L,
+  forward = 2L)
 
 \S4method{RegDiffTSPred}{StQList}(x, VarNames, frequency = 12L,
   forward = 2L)
@@ -19,6 +20,9 @@ RegDiffTSPred(x, VarNames, frequency = 12L, forward = 2L)
 
 \item{VarNames}{character vector with the variable names for which the prediction will be made;
 by default it is NULL.}
+
+\item{frequency}{frequency of the time periods in the time series (default value 12 for monthly
+series).}
 
 \item{forward}{integer indicating the number of periods ahead when the prediction will be made;
 by default it is 2L.}

@@ -5,7 +5,7 @@
 \alias{StatRegDiffTSPred}
 \alias{StatRegDiffTSPred,vector-method}
 \alias{StatRegDiffTSPred,StQList-method}
-\title{Method to predict according to the stational difference time series model}
+\title{Method to predict according to the stational difference time series model.}
 \usage{
 StatRegDiffTSPred(x, StatDiff = 12L, forward = 2L, VarNames = NULL)
 

@@ -3,12 +3,11 @@ Title: Point and std prediction of time series
 Version: 0.4.6
 Author: David Salgado
 Maintainer: David Salgado <david.salgado.fernandez@ine.es>
-Description: This package contains functions to make 
-    predictions of time series. The functions are indeed 
-    different methods for their corresponding generic
+Description: This package contains functions to make predictions of time series. The functions are indeed different methods for their corresponding generic.
 Depends:
     R (>= 3.3.0)
 Imports:
+    methods (>= 3.5.1),
     data.table (>= 1.10.0),
     RepoTime (>= 0.2.1),
     StQ (>= 0.3.6),
@@ -26,7 +25,6 @@ Collate:
     'FixedTSPred.R'
     'Example1.TS.R'
     'Example2.TS.R'
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 URL: https://github.com/elisa-esteban/TSPred
 BugReports: https://github.com/elisa-esteban/TSPred/issues
-
