@@ -3,8 +3,8 @@
 \docType{methods}
 \name{FixedTSPred}
 \alias{FixedTSPred}
-\alias{FixedTSPred,StQList-method}
 \alias{FixedTSPred,vector-method}
+\alias{FixedTSPred,StQList-method}
 \title{Method to predict a prefixed value for time series.}
 \usage{
 FixedTSPred(x, VarNames, value = 0L)
@@ -56,4 +56,3 @@ FixedTSPred(StQListExample, VarNames)
 }
 
 }
-

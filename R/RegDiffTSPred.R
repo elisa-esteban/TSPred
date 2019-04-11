@@ -8,6 +8,9 @@
 #' @param VarNames character vector with the variable names for which the prediction will be made;
 #' by default it is NULL.
 #'
+#' @param frequency frequency of the time periods in the time series (default value 12 for monthly
+#' series).
+#'
 #' @param forward integer indicating the number of periods ahead when the prediction will be made;
 #' by default it is 2L.
 #'
@@ -70,24 +73,25 @@ setMethod(
 
 
         # vectors with not enough observations returns NA
-        if (length(x) == 0 | length(x[!is.na(x)]) <= 3) {
+        x.aux <- x[!is.na(x)]
+        if (length(x) == 0 | length(x.aux) == 1) return(data.table(Pred = NA_real_, STD = NA_real_))
 
-            output <- data.table(Pred = NA_real_,STD = NA_real_)
-            return(output)
+        if (length(x.aux) <= 3) return(data.table(Pred = x.aux[length(x.aux)], STD = sd(x.aux)))
 
-        }
 
-        if (length(rle(x[!is.na(x)])$values) == 1) {
+        if (length(rle(x.aux)$values) == 1) {
+
             x <- imputeTS::na.kalman(x, model = 'auto.arima')
         } else {
+
             x <- imputeTS::na.kalman(x)
         }
 
         x <- ts(x, frequency = frequency)
 
         fit <- Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
-        out <- forecast::forecast(fit, h = forward)
-        std <- sqrt(out$model$sigma2)
+        out <- forecast::forecast(fit, h = forward, level = 0.95)
+        std <- (out$upper[forward] - out$lower[forward]) / (2 * 1.96)
         output <- list(Pred = out$mean[forward], STD = std)
         output <- data.table(Pred = output$Pred, STD = output$STD)
         return(output)
