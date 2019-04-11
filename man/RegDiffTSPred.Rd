@@ -3,8 +3,8 @@
 \docType{methods}
 \name{RegDiffTSPred}
 \alias{RegDiffTSPred}
-\alias{RegDiffTSPred,vector-method}
 \alias{RegDiffTSPred,StQList-method}
+\alias{RegDiffTSPred,vector-method}
 \title{Method to predict according to the regular difference time series model.}
 \usage{
 RegDiffTSPred(x, VarNames, frequency = 12L, forward = 2L)
@@ -58,3 +58,4 @@ RegDiffTSPred(StQListExample, VarNames)
 }
 
 }
+

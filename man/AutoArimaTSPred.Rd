@@ -3,8 +3,8 @@
 \docType{methods}
 \name{AutoArimaTSPred}
 \alias{AutoArimaTSPred}
-\alias{AutoArimaTSPred,vector-method}
 \alias{AutoArimaTSPred,StQList-method}
+\alias{AutoArimaTSPred,vector-method}
 \title{Method to predict according to an ARIMA model}
 \usage{
 AutoArimaTSPred(x, VarNames, frequency = 12L, forward = 2L)
@@ -61,3 +61,4 @@ AutoArimaTSPred(StQListExample, VarNames)
 }
 
 }
+
