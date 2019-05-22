@@ -1,4 +1,4 @@
-#' @title Method to predict according to an ARIMA model
+#' @title Method to predict according to an ARIMA model.
 #'
 #' @description This method implements the predicted value and their standard deviation according to
 #' an ARIMA model.

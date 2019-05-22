@@ -9,8 +9,9 @@
 #' @param VarNames character vector with the variable names for which the prediction will be made;
 #' by default it is NULL.
 #'
-#' @param frequency integer indicating the frequency of the serie; by default it is 12L.
-#' 
+#' @param frequency integer indicating the frequency of the time periods in the time series; by
+#' default it is 12L.
+#'
 #' @param forward integer indicating the number of periods ahead when the prediction will be made;
 #' by default it is 2L.
 #'

@@ -5,7 +5,7 @@
 \alias{AutoArimaTSPred}
 \alias{AutoArimaTSPred,vector-method}
 \alias{AutoArimaTSPred,StQList-method}
-\title{Method to predict according to an ARIMA model}
+\title{Method to predict according to an ARIMA model.}
 \usage{
 AutoArimaTSPred(x, VarNames, frequency = 12L, forward = 2L)
 

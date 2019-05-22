@@ -21,7 +21,8 @@ made.}
 \item{VarNames}{character vector with the variable names for which the prediction will be made;
 by default it is NULL.}
 
-\item{frequency}{integer indicating the frequency of the serie; by default it is 12L.}
+\item{frequency}{integer indicating the frequency of the time periods in the time series; by
+default it is 12L.}
 
 \item{forward}{integer indicating the number of periods ahead when the prediction will be made;
 by default it is 2L.}
