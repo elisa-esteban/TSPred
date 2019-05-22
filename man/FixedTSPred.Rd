@@ -16,27 +16,18 @@ FixedTSPred(x, VarNames, value = 0L)
 \arguments{
 \item{x}{object upon which the prediction will be made.}
 
-\item{VarNames}{character vector with the variable names for which the
-prediction will be made; by default it is NULL.}
+\item{VarNames}{character vector with the variable names for which the prediction will be made;
+by default it is NULL.}
 
-\item{value}{numeric vector with the value for the prediction and the
-sta}
+\item{value}{numeric vector with the value for the prediction and the standard deviation.}
 }
 \value{
-It returns a list with components Pred and STD, containing the point
-prediction and the standard deviations, respectively, with the prefixed value.
-Depending on the class of the input parameter x, it returns:
-
-\itemize{
- \item For input class vector, it returns numeric vectors.
- \item For input class matrix, it returns matrices.
- \item For input class StQList, it returns list whose components are
-  data.tables.
-}
+It returns a \code{data.table} with components Pred and STD, containing the point
+prediction and the estimated standard deviations, respectively, for each variable.
 }
 \description{
-This method implements the predicted value and their standard
-deviations as a prefixed value.
+This method implements the predicted value and their standard deviations as a
+prefixed value.
 }
 \examples{
 
@@ -51,8 +42,8 @@ FixedTSPred(Example2.TS, value = 0L)
 \dontrun{
 # With an object of class StQList
 data(StQListExample)
-VarNames <- c('ActivEcono_35._6._2.1.4._0', 'GeoLoc_35._6._2.1._1.2.5.')
-FixedTSPred(StQListExample, VarNames)
+VarNames <- c('Personal_07.')
+FixedTSPred(StQListExample, VarNames, value = 0L)
 }
 
 }

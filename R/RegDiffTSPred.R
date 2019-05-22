@@ -3,24 +3,19 @@
 #' @description This method implements the predicted value and their standard deviation according to
 #' the regular difference time series model \eqn{(1-B)y_{t}=a_{t}}{(1-B)y<sub>t</sub>=a<sub>t</sub>}.
 #'
-#' @param x object upon which the prediction will be made.
+#' @param x \code{Vector} or object of class \linkS4class{StQList} upon which the prediction will be
+#' made.
 #'
 #' @param VarNames character vector with the variable names for which the prediction will be made;
 #' by default it is NULL.
 #'
+#' @param frequency integer indicating the frequency of the serie; by default it is 12L.
+#' 
 #' @param forward integer indicating the number of periods ahead when the prediction will be made;
 #' by default it is 2L.
 #'
-#' @return It returns a list with components Pred and STD, containing the point prediction and the
-#' estimated standard deviations, respectively. Depending on the class of the input parameter x, it
-#' returns:
-#'
-#' \itemize{
-#'  \item For input class vector, it returns numeric vectors.
-#'  \item For input class matrix, it returns matrices.
-#'  \item For input class StQList, it returns list whose components are
-#'   data.tables.
-#' }
+#' @return It returns a \code{data.table} with components Pred and STD, containing the point
+#' prediction and the estimated standard deviations, respectively, for each variable.
 #'
 #' @examples
 #'
