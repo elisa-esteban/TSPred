@@ -74,10 +74,10 @@ setMethod(
 
         if (length(rle(x.aux)$values) == 1) {
 
-            x <- imputeTS::na.kalman(x, model = 'auto.arima')
+            x <- imputeTS::na.kalman(x.aux, model = 'auto.arima')
         } else {
 
-            x <- imputeTS::na.kalman(x)
+            x <- imputeTS::na.kalman(x.aux)
         }
 
         x <- ts(x, frequency = frequency)
