@@ -70,16 +70,19 @@ setMethod(
 
 
         # vectors with not enough observations returns NA
+        x.aux <- x[!is.na(x)]
+        if (length(x) == 0 | length(x.aux) < 3) return(data.table(Pred = NA_real_, STD = NA_real_))
+
         min <- (last + forward) - 3 * StatDiff
-        if (length(x) == 0 | min < ini) return(data.table(Pred = NA_real_, STD = NA_real_))
+        if (min <= ini) return(data.table(Pred = NA_real_, STD = NA_real_))
 
 
-        if (length(rle(x[!is.na(x)])$values) == 1) {
+        if (length(rle(x.aux)$values) == 1) {
 
-            x <- imputeTS::na.kalman(x, model = 'auto.arima')
+            x <- imputeTS::na.kalman(x, model = 'auto.arima') # Needs at least 3 non-NA data point
         } else {
 
-            x <- imputeTS::na.kalman(x)
+            x <- imputeTS::na.kalman(x) # Needs at least 3 non-NA data point
         }
 
         x <- ts(x, frequency = StatDiff)

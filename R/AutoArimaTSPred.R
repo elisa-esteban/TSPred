@@ -71,10 +71,10 @@ setMethod(
 
         if (length(rle(x.aux)$values) == 1) {
 
-            x <- imputeTS::na.kalman(x.aux, model = 'auto.arima')
+            x <- imputeTS::na.kalman(x, model = 'auto.arima') # Needs at least 3 non-NA data point
         } else {
 
-            x <- imputeTS::na.kalman(x.aux)
+            x <- imputeTS::na.kalman(x) # Needs at least 3 non-NA data point
         }
 
         x <- ts(x, frequency = frequency)
