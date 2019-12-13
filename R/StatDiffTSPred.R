@@ -80,15 +80,17 @@ setMethod(
 
         if (length(rle(x.aux)$values) == 1) {
 
-          x <- imputeTS::na.kalman(x, model = 'auto.arima') # Needs at least 3 non-NA data point
+          #x <- imputeTS::na_kalman(x, model = 'auto.arima') # Needs at least 3 non-NA data point
+          x[is.na(x)] <- rle(x.aux)$values
+
         } else {
 
-          x <- imputeTS::na.kalman(x) # Needs at least 3 non-NA data point
+          x <- imputeTS::na_kalman(x, type = 'level') # Needs at least 3 non-NA data point
         }
 
        x <- ts(x, frequency = StatDiff)
 
-       fit <- Arima(x, order = c(0, 0, 0), seasonal = c(0, 1, 0))
+       fit <- forecast::Arima(x, order = c(0, 0, 0), seasonal = c(0, 1, 0))
        out <- forecast::forecast(fit, h = forward, level = 0.95)
        std <- (out$upper[forward] - out$lower[forward]) / (2 * 1.96)
        output <- list(Pred = out$mean[forward], STD = std)

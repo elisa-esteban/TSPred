@@ -71,17 +71,19 @@ setMethod(
 
         if (length(rle(x.aux)$values) == 1) {
 
-            x <- imputeTS::na.kalman(x, model = 'auto.arima') # Needs at least 3 non-NA data point
+            #x <- imputeTS::na_kalman(x, model = 'auto.arima') # Needs at least 3 non-NA data point
+            x[is.na(x)] <- rle(x.aux)$values
+
         } else {
 
-            x <- imputeTS::na.kalman(x) # Needs at least 3 non-NA data point
+            x <- imputeTS::na_kalman(x, type = 'level') # Needs at least 3 non-NA data point
         }
 
         x <- ts(x, frequency = frequency)
 
         if (length(x) < 12) {
 
-          fit <- Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
+          fit <- forecast::Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
         } else {
 
           fit <- forecast::auto.arima(x)
