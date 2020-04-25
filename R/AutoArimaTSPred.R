@@ -114,7 +114,12 @@ setMethod(
         DT <- dcast_StQ(x_StQ, ExtractNames(VarNames))
         DT[, orderPeriod := orderRepoTime(Period), by = IDQuals]
         setkeyv(DT, c(IDQuals, 'orderPeriod'))
+        VarNames <- intersect(VarNames, names(DT))
+        if (length(VarNames) == 0) {
 
+            stop('[TSPred::AutoArimaTSPred] No VarNames present in StQList object.\n')
+
+        }
         if (length(VarNames) == 1) {
 
             output <- DT[ ,AutoArimaTSPred(get(VarNames), frequency = frequency, forward = forward),
