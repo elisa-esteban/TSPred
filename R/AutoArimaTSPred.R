@@ -8,21 +8,13 @@
 #' @param VarNames character vector with the variable names for which the prediction will be made;
 #' by default it is NULL.
 #'
-#' @param frequency integer indicating the frequency of time series;
-#' by default it is 12L.
+#' @param frequency integer indicating the frequency of time series; by default it is 12L.
 #'
 #' @param forward integer indicating the number of periods ahead when the prediction will be made;
 #' by default it is 2L.
 #'
-#' @return It returns a list with components Pred and STD, containing the point prediction and the
-#' estimated standard deviations, respectively. Depending on the class of the input parameter x, it
-#' returns:
-#'
-#' \itemize{
-#'  \item For input class vector, it returns numeric vectors.
-#'  \item For input class StQList, it returns list whose components are
-#'   data.tables.
-#' }
+#' @return It returns a \code{data.table} with components Pred and STD, containing the point
+#' prediction and the estimated standard deviations, respectively, for each variable.
 #'
 #' @examples
 #'
@@ -79,17 +71,19 @@ setMethod(
 
         if (length(rle(x.aux)$values) == 1) {
 
-            x <- imputeTS::na.kalman(x, model = 'auto.arima')
+            #x <- imputeTS::na_kalman(x, model = 'auto.arima') # Needs at least 3 non-NA data point
+            x[is.na(x)] <- rle(x.aux)$values
+
         } else {
 
-            x <- imputeTS::na.kalman(x)
+            x <- imputeTS::na_kalman(x, type = 'level') # Needs at least 3 non-NA data point
         }
 
         x <- ts(x, frequency = frequency)
 
         if (length(x) < 12) {
 
-          fit <- Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
+          fit <- forecast::Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
         } else {
 
           fit <- forecast::auto.arima(x)

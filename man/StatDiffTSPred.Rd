@@ -27,16 +27,8 @@ by default it is 2L.}
 by default it is NULL}
 }
 \value{
-It returns a list with components Pred and STD, containing the point prediction and the
-estimated standard deviations, respectively. Depending on the class of the input parameter x, it
-returns:
-
-\itemize{
- \item For input class vector, it returns numeric vectors.
- \item For input class matrix, it returns matrices.
- \item For input class StQList, it returns list whose components are
-  data.tables.
-}
+It returns a \code{data.table} with components Pred and STD, containing the point
+prediction and the estimated standard deviations, respectively, for each variable.
 }
 \description{
 This method implements the predicted value and their standard deviation according to

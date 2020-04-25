@@ -14,16 +14,8 @@
 #' @param VarNames character vector with the variable names for which the prediction will be made;
 #' by default it is NULL.
 #'
-#' @return It returns a list with components Pred and STD, containing the point prediction and the
-#' estimated standard deviations, respectively. Depending on the class of the input parameter x, it
-#' returns:
-#'
-#' \itemize{
-#'  \item For input class vector, it returns numeric vectors.
-#'  \item For input class matrix, it returns matrices.
-#'  \item For input class StQList, it returns list whose components are
-#'   data.tables.
-#' }
+#' @return It returns a \code{data.table} with components Pred and STD, containing the point
+#' prediction and the estimated standard deviations, respectively, for each variable.
 #'
 #' @examples
 #'
@@ -78,21 +70,26 @@ setMethod(
 
 
         # vectors with not enough observations returns NA
+        x.aux <- x[!is.na(x)]
+        if (length(x) == 0 | length(x.aux) < 3) return(data.table(Pred = NA_real_, STD = NA_real_))
+
         min <- (last + forward) - 3 * StatDiff
-        if (length(x) == 0 | min < ini) return(data.table(Pred = NA_real_, STD = NA_real_))
+        if (min <= ini) return(data.table(Pred = NA_real_, STD = NA_real_))
 
 
-        if (length(rle(x[!is.na(x)])$values) == 1) {
+        if (length(rle(x.aux)$values) == 1) {
 
-            x <- imputeTS::na.kalman(x, model = 'auto.arima')
+            #x <- imputeTS::na_kalman(x, model = 'auto.arima') # Needs at least 3 non-NA data point
+            x[is.na(x)] <- rle(x.aux)$values
+
         } else {
 
-            x <- imputeTS::na.kalman(x)
+            x <- imputeTS::na_kalman(x, type = 'level') # Needs at least 3 non-NA data point
         }
 
         x <- ts(x, frequency = StatDiff)
 
-        fit <- Arima(x, order = c(0, 1, 0), seasonal = c(0, 1, 0))
+        fit <- forecast::Arima(x, order = c(0, 1, 0), seasonal = c(0, 1, 0))
         out <- forecast::forecast(fit, h = forward, level = 0.95)
         std <- (out$upper[forward] - out$lower[forward]) / (2 * 1.96)
         output <- list(Pred = out$mean[forward], STD = std)

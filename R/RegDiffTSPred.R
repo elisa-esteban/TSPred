@@ -3,24 +3,20 @@
 #' @description This method implements the predicted value and their standard deviation according to
 #' the regular difference time series model \eqn{(1-B)y_{t}=a_{t}}{(1-B)y<sub>t</sub>=a<sub>t</sub>}.
 #'
-#' @param x object upon which the prediction will be made.
+#' @param x \code{Vector} or object of class \linkS4class{StQList} upon which the prediction will be
+#' made.
 #'
 #' @param VarNames character vector with the variable names for which the prediction will be made;
 #' by default it is NULL.
 #'
+#' @param frequency integer indicating the frequency of the time periods in the time series; by
+#' default it is 12L.
+#'
 #' @param forward integer indicating the number of periods ahead when the prediction will be made;
 #' by default it is 2L.
 #'
-#' @return It returns a list with components Pred and STD, containing the point prediction and the
-#' estimated standard deviations, respectively. Depending on the class of the input parameter x, it
-#' returns:
-#'
-#' \itemize{
-#'  \item For input class vector, it returns numeric vectors.
-#'  \item For input class matrix, it returns matrices.
-#'  \item For input class StQList, it returns list whose components are
-#'   data.tables.
-#' }
+#' @return It returns a \code{data.table} with components Pred and STD, containing the point
+#' prediction and the estimated standard deviations, respectively, for each variable.
 #'
 #' @examples
 #'
@@ -70,24 +66,29 @@ setMethod(
 
 
         # vectors with not enough observations returns NA
-        if (length(x) == 0 | length(x[!is.na(x)]) <= 3) {
+        x.aux <- x[!is.na(x)]
 
-            output <- data.table(Pred = NA_real_,STD = NA_real_)
-            return(output)
+        if (length(x) == 0 | length(x.aux) == 1) return(data.table(Pred = NA_real_, STD = NA_real_))
 
-        }
+        if (length(x.aux) <= 3) return(data.table(Pred = x.aux[length(x.aux)], STD = sd(x.aux)))
 
-        if (length(rle(x[!is.na(x)])$values) == 1) {
-            x <- imputeTS::na.kalman(x, model = 'auto.arima')
+        if (length(rle(x.aux)$values) == 1) {
+
+            #x <- imputeTS::na_kalman(x, model = 'auto.arima') # Needs at least 3 non-NA data point
+            x[is.na(x)] <- rle(x.aux)$values
+
         } else {
-            x <- imputeTS::na.kalman(x)
+
+            x <- imputeTS::na_kalman(x, type = 'level') # Needs at least 3 non-NA data point
         }
+
 
         x <- ts(x, frequency = frequency)
 
-        fit <- Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
-        out <- forecast::forecast(fit, h = forward)
-        std <- sqrt(out$model$sigma2)
+        fit <- forecast::Arima(x, order = c(0, 1, 0), seasonal = c(0, 0, 0))
+
+        out <- forecast::forecast(fit, h = forward, level = 0.95)
+        std <- (out$upper[forward] - out$lower[forward]) / (2 * 1.96)
         output <- list(Pred = out$mean[forward], STD = std)
         output <- data.table(Pred = output$Pred, STD = output$STD)
         return(output)
@@ -131,6 +132,7 @@ setMethod(
             output <- parLapply(clust, VarNames, function(var){
 
                 out <- DT[ ,RegDiffTSPred(get(var), frequency = frequency, forward = forward), by = IDQuals]
+
                 return(out)
 
             })
